@@ -229,7 +229,7 @@ export async function notifySlackForIncident(
 /**
  * Build Slack message blocks with interactive buttons (Premium Design)
  */
-export function buildSlackBlocks(
+function buildSlackBlocks(
   incident: IncidentDetails,
   eventType: SlackEventType,
   additionalMessage?: string,
@@ -406,14 +406,13 @@ export async function sendSlackMessageToChannel(
     includeInteractiveButtons
   );
 
-  const resolvedChannel = /^[CGDU][A-Z0-9]+$/.test(channel)
-    ? channel
-    : channel.startsWith('#')
-      ? channel
-      : `#${channel}`;
-
   const payload = {
-    channel: resolvedChannel,
+    // Use ID directly if it looks like an ID (C/G/D/U...), otherwise ensure # prefix for names
+    channel: /^[CGDU][A-Z0-9]+$/.test(channel)
+      ? channel
+      : channel.startsWith('#')
+        ? channel
+        : `#${channel}`,
     blocks,
     attachments: [
       {
@@ -423,57 +422,6 @@ export async function sendSlackMessageToChannel(
   };
 
   try {
-    // For acknowledged/resolved incidents, update the original Slack message
-    // when we have a stored Slack channel + message timestamp.
-    if (eventType !== 'triggered') {
-      const existingIncident = await prisma.incident.findUnique({
-        where: { id: incident.id },
-        select: {
-          slackChannelId: true,
-          slackMessageTs: true,
-        },
-      });
-
-      if (existingIncident?.slackChannelId && existingIncident?.slackMessageTs) {
-        const updateResponse = await retryFetch(
-          'https://slack.com/api/chat.update',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${botToken}`,
-            },
-            body: JSON.stringify({
-              channel: existingIncident.slackChannelId,
-              ts: existingIncident.slackMessageTs,
-              text: `Incident ${eventType}: ${incident.title}`,
-              blocks,
-            }),
-          },
-          {
-            maxAttempts: 3,
-            initialDelayMs: 1000,
-          }
-        );
-
-        const updateData = await updateResponse.json();
-
-        if (!updateResponse.ok || !updateData.ok) {
-          const errorMsg = updateData.error || `HTTP ${updateResponse.status}`;
-          logger.error('[Slack] Failed to update incident message', {
-            error: errorMsg,
-            incident: incident.id,
-          });
-          return { success: false, error: errorMsg };
-        }
-
-        logger.info(
-          `[Slack] Message updated in channel ${existingIncident.slackChannelId}: ${eventType} - ${incident.title}`
-        );
-        return { success: true };
-      }
-    }
-
     const response = await retryFetch(
       'https://slack.com/api/chat.postMessage',
       {
@@ -507,18 +455,6 @@ export async function sendSlackMessageToChannel(
       const errorMsg = responseData.error || `HTTP ${response.status}`;
       logger.error('[Slack] API call failed', { error: errorMsg, channel });
       return { success: false, error: errorMsg };
-    }
-
-    // Store the original Slack message reference so later ACK/RESOLVE
-    // events can update the same message instead of posting a new one.
-    if (eventType === 'triggered' && responseData.channel && responseData.ts) {
-      await prisma.incident.update({
-        where: { id: incident.id },
-        data: {
-          slackChannelId: responseData.channel,
-          slackMessageTs: responseData.ts,
-        },
-      });
     }
 
     logger.info(

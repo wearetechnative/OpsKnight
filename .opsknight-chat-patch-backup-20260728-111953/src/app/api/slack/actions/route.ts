@@ -7,7 +7,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import crypto from 'crypto';
-import { buildSlackBlocks, getSlackBotToken } from '@/lib/slack';
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
 
@@ -61,28 +60,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Slack interactive actions are sent as
-        // application/x-www-form-urlencoded with JSON in the `payload` field.
-        // Other Slack requests, such as URL verification, may be plain JSON.
-        const contentType = request.headers.get('content-type') || '';
-
-        let payload: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-        if (contentType.includes('application/x-www-form-urlencoded')) {
-            const form = new URLSearchParams(body);
-            const payloadString = form.get('payload');
-
-            if (!payloadString) {
-                return NextResponse.json(
-                    { error: 'Missing Slack payload' },
-                    { status: 400 }
-                );
-            }
-
-            payload = JSON.parse(payloadString);
-        } else {
-            payload = JSON.parse(body);
-        }
+        const payload = JSON.parse(body);
 
         // Handle URL verification (for Slack app setup)
         if (payload.type === 'url_verification') {
@@ -108,11 +86,7 @@ export async function POST(request: NextRequest) {
 
             // Get incident
             const incident = await prisma.incident.findUnique({
-                where: { id: incidentId },
-                include: {
-                    service: true,
-                    assignee: true
-                }
+                where: { id: incidentId }
             });
 
             if (!incident) {
@@ -158,7 +132,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Update incident
-            const updatedIncident = await prisma.incident.update({
+            await prisma.incident.update({
                 where: { id: incidentId },
                 data: updateData
             });
@@ -170,63 +144,6 @@ export async function POST(request: NextRequest) {
                     message: `${responseMessage} via Slack`
                 }
             });
-
-            // Update the original Slack message so its state matches OpsKnight.
-            const channelId = payload.channel?.id;
-            const messageTs = payload.message?.ts;
-
-            if (channelId && messageTs) {
-                const botToken = await getSlackBotToken(incident.serviceId);
-
-                if (botToken) {
-                    const eventType =
-                        updatedIncident.status === 'ACKNOWLEDGED'
-                            ? 'acknowledged'
-                            : 'resolved';
-
-                    const blocks = buildSlackBlocks(
-                        {
-                            id: updatedIncident.id,
-                            title: updatedIncident.title,
-                            status: updatedIncident.status,
-                            urgency: updatedIncident.urgency,
-                            serviceName: incident.service.name,
-                            assigneeName: incident.assignee?.name
-                        },
-                        eventType,
-                        undefined,
-                        true
-                    );
-
-                    const slackResponse = await fetch(
-                        'https://slack.com/api/chat.update',
-                        {
-                            method: 'POST',
-                            headers: {
-                                Authorization: `Bearer ${botToken}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                channel: channelId,
-                                ts: messageTs,
-                                text: `${responseMessage}: ${updatedIncident.title}`,
-                                blocks
-                            })
-                        }
-                    );
-
-                    const slackData = await slackResponse.json();
-
-                    if (!slackData.ok) {
-                        logger.warn('[Slack] Failed to update incident message', {
-                            error: slackData.error,
-                            incidentId,
-                            channelId,
-                            messageTs
-                        });
-                    }
-                }
-            }
 
             // Send confirmation back to Slack
             return NextResponse.json({

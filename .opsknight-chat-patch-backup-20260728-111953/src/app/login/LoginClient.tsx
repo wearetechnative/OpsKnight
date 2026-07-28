@@ -118,7 +118,8 @@ export default function LoginClient({
         // without loitering — the prior 1200ms was a perceptible
         // pause that felt slow vs. Amazon/Linear/etc.
         setTimeout(() => {
-          window.location.assign(safeTarget);
+          router.push(safeTarget);
+          router.refresh();
         }, 250);
       }
     } catch {

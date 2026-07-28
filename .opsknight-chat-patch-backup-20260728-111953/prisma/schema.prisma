@@ -484,8 +484,6 @@ model Incident {
   escalationProcessingAt DateTime? // When escalation processing was claimed
   acknowledgedAt         DateTime? // When incident was acknowledged (for SLA tracking)
   resolvedAt             DateTime? // When incident was resolved (for SLA tracking)
-  slackChannelId         String? // Slack channel containing the incident message
-  slackMessageTs         String? // Slack message timestamp used by chat.update
   snoozedUntil           DateTime? // When to auto-unsnooze (for time-based snoozing)
   snoozeReason           String? // Reason for snoozing
   createdAt              DateTime           @default(now())

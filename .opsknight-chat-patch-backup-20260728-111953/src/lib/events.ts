@@ -449,39 +449,21 @@ export async function processEvent(
       });
     }
 
-    import('./service-notifications')
-      .then(({ sendServiceNotifications }) => {
-        sendServiceNotifications(result.incident.id, 'resolved').catch(error => {
-          logger.error('Service resolved notification failed', {
-            incidentId: result.incident.id,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        });
-      })
-      .catch(error => {
-        logger.error('Failed to load service-notifications', {
-          incidentId: result.incident.id,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
+    notifySlackForIncident(result.incident.id, 'resolved').catch(error => {
+      logger.error('Slack notification failed', {
+        incidentId: result.incident.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
+    });
   }
 
   if (result.action === 'acknowledged' && result.incident) {
-    import('./service-notifications')
-      .then(({ sendServiceNotifications }) => {
-        sendServiceNotifications(result.incident.id, 'acknowledged').catch(error => {
-          logger.error('Service acknowledged notification failed', {
-            incidentId: result.incident.id,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        });
-      })
-      .catch(error => {
-        logger.error('Failed to load service-notifications', {
-          incidentId: result.incident.id,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
+    notifySlackForIncident(result.incident.id, 'acknowledged').catch(error => {
+      logger.error('Slack notification failed', {
+        incidentId: result.incident.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
+    });
   }
 
   return result;

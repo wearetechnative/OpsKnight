@@ -1,0 +1,3 @@
+ALTER TABLE "Incident"
+ADD COLUMN IF NOT EXISTS "slackChannelId" TEXT,
+ADD COLUMN IF NOT EXISTS "slackMessageTs" TEXT;

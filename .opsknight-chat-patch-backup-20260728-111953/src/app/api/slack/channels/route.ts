@@ -35,57 +35,42 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch all channels from Slack API using cursor pagination.
-    // Slack may return fewer than `limit` results even when more pages exist,
-    // so keep following response_metadata.next_cursor until it is empty.
-    const allChannels: SlackApiChannel[] = [];
-    let cursor: string | undefined;
+    // Fetch channels from Slack API
+    const listUrl = new URL('https://slack.com/api/conversations.list');
+    listUrl.searchParams.set('exclude_archived', 'true');
+    listUrl.searchParams.set('limit', '200');
+    listUrl.searchParams.set('types', SLACK_CHANNEL_TYPES);
 
-    do {
-      const listUrl = new URL('https://slack.com/api/conversations.list');
-      listUrl.searchParams.set('exclude_archived', 'true');
-      listUrl.searchParams.set('limit', '200');
-      listUrl.searchParams.set('types', SLACK_CHANNEL_TYPES);
-      if (cursor) {
-        listUrl.searchParams.set('cursor', cursor);
-      }
-
-      const response = await retryFetch(
-        listUrl.toString(),
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${botToken}`,
-            'Content-Type': 'application/json',
-          },
+    const response = await retryFetch(
+      listUrl.toString(),
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${botToken}`,
+          'Content-Type': 'application/json',
         },
-        {
-          maxAttempts: 2,
-          initialDelayMs: 500,
-        }
-      );
-
-      const data = await response.json();
-
-      if (!data.ok) {
-        logger.error('[Slack] Failed to fetch channels', { error: data.error });
-        return NextResponse.json(
-          { error: data.error || 'Failed to fetch channels' },
-          { status: 500 }
-        );
+      },
+      {
+        maxAttempts: 2,
+        initialDelayMs: 500,
       }
+    );
 
-      allChannels.push(...(data.channels || []));
-      cursor = data.response_metadata?.next_cursor || undefined;
-    } while (cursor);
+    const data = await response.json();
+
+    if (!data.ok) {
+      logger.error('[Slack] Failed to fetch channels', { error: data.error });
+      return NextResponse.json(
+        { error: data.error || 'Failed to fetch channels' },
+        { status: 500 }
+      );
+    }
 
     // Filter channels:
     // - Must be a channel (not a DM or group DM)
     // - Not archived
-    const channels = allChannels
-      .filter((channel: SlackApiChannel) =>
-        (channel.is_channel || channel.is_private) && !channel.is_archived
-      )
+    const channels = (data.channels || [])
+      .filter((channel: SlackApiChannel) => channel.is_channel && !channel.is_archived)
       .map((channel: SlackApiChannel) => ({
         id: channel.id,
         name: channel.name,

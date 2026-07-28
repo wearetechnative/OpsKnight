@@ -27,8 +27,9 @@ services:
   opsknight-app:
     # Use the pre-built image from GitHub Container Registry (Test Channel)
     # This avoids building from source locally and speeds up startup.
-    image: opsknight-local:test
+    image: ghcr.io/dushyant-rahangdale/opsknight:latest
     container_name: opsknight_app
+    pull_policy: always
     restart: unless-stopped
     ports:
       - '${APP_PORT:-3000}:3000'
@@ -54,7 +55,7 @@ services:
       test:
         [
           'CMD-SHELL',
-          'node -e "require(''http'').get(''http://localhost:3000/api/health?mode=readiness'', (r) => {let data='''';r.on(''data'',(c)=>data+=c);r.on(''end'',()=>{try{const res=JSON.parse(data);process.exit(res.status===''healthy''?0:1)}catch(e){process.exit(1)}});}).on(''error'',()=>process.exit(1))"',
+          'node -e "require(''http'').get(''http://localhost:3000/api/health'', (r) => {let data='''';r.on(''data'',(c)=>data+=c);r.on(''end'',()=>{try{const res=JSON.parse(data);process.exit(res.status===''healthy''?0:1)}catch(e){process.exit(1)}});}).on(''error'',()=>process.exit(1))"',
         ]
       interval: 30s
       timeout: 10s
