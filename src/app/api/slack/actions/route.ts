@@ -126,13 +126,65 @@ export async function POST(request: NextRequest) {
             let updateData: any = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
             let responseMessage = '';
 
+            // Try to map the Slack user who clicked the button to an OpsKnight
+            // user by email. Slack action payload gives us payload.user.id.
+            let acknowledgingUser: { id: string; name: string | null; email: string } | null = null;
+
+            if (actionType === 'ack' && payload.user?.id) {
+                try {
+                    const botToken = await getSlackBotToken(incident.serviceId);
+
+                    if (botToken) {
+                        const slackUserResponse = await fetch(
+                            `https://slack.com/api/users.info?user=${encodeURIComponent(payload.user.id)}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${botToken}`
+                                }
+                            }
+                        );
+
+                        const slackUserData = await slackUserResponse.json();
+                        const slackEmail = slackUserData.user?.profile?.email;
+
+                        if (slackUserData.ok && slackEmail) {
+                            acknowledgingUser = await prisma.user.findUnique({
+                                where: { email: slackEmail },
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true
+                                }
+                            });
+                        }
+
+                        if (!acknowledgingUser) {
+                            logger.warn('[Slack] Could not map Slack user to OpsKnight user', {
+                                slackUserId: payload.user.id,
+                                slackEmail: slackEmail || null
+                            });
+                        }
+                    }
+                } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+                    logger.warn('[Slack] Failed to resolve acknowledging Slack user', {
+                        slackUserId: payload.user?.id,
+                        error: error.message
+                    });
+                }
+            }
+
             if (actionType === 'ack') {
                 if (incident.status === 'OPEN') {
                     updateData = {
                         status: 'ACKNOWLEDGED',
-                        acknowledgedAt: new Date()
+                        acknowledgedAt: new Date(),
+                        ...(acknowledgingUser && {
+                            assigneeId: acknowledgingUser.id
+                        })
                     };
-                    responseMessage = 'Incident acknowledged';
+                    responseMessage = acknowledgingUser
+                        ? `Incident acknowledged by ${acknowledgingUser.name || acknowledgingUser.email}`
+                        : 'Incident acknowledged';
                 } else {
                     return NextResponse.json({
                         text: 'Incident is already acknowledged or resolved'
@@ -191,7 +243,10 @@ export async function POST(request: NextRequest) {
                             status: updatedIncident.status,
                             urgency: updatedIncident.urgency,
                             serviceName: incident.service.name,
-                            assigneeName: incident.assignee?.name
+                            assigneeName:
+                                updatedIncident.status === 'ACKNOWLEDGED' && acknowledgingUser
+                                    ? acknowledgingUser.name || acknowledgingUser.email
+                                    : incident.assignee?.name
                         },
                         eventType,
                         undefined,
