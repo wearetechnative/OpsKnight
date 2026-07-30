@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Incident, Service } from '@prisma/client';
 import { useTimezone } from '@/contexts/TimezoneContext';
 import { formatDateTime } from '@/lib/timezone';
-import { Badge } from '@/components/ui/shadcn/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/shadcn/card';
 import UserAvatar from '@/components/UserAvatar';
 import {
@@ -14,9 +13,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/shadcn/select';
-import { updateIncidentUrgency, updateIncidentVisibility } from '@/app/(app)/incidents/actions';
+import { updateIncidentVisibility } from '@/app/(app)/incidents/actions';
 import {
   Eye,
   EyeOff,
@@ -26,7 +24,6 @@ import {
   Shield,
   Users,
   User,
-  AlertTriangle,
 } from 'lucide-react';
 import EscalationStatusBadge from './EscalationStatusBadge';
 import AssigneeSection from './AssigneeSection';
@@ -62,31 +59,9 @@ export default function IncidentHeader({ incident, users, teams, canManage }: In
   const { userTimeZone } = useTimezone();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const urgencyVariantMap: Record<'HIGH' | 'MEDIUM' | 'LOW', 'danger' | 'warning' | 'success'> = {
-    HIGH: 'danger',
-    MEDIUM: 'warning',
-    LOW: 'success',
-  };
-  const urgencyDotMap: Record<'HIGH' | 'MEDIUM' | 'LOW', string> = {
-    HIGH: 'bg-red-500 animate-pulse',
-    MEDIUM: 'bg-amber-500',
-    LOW: 'bg-emerald-500',
-  };
-  const urgencyVariant =
-    urgencyVariantMap[incident.urgency as 'HIGH' | 'MEDIUM' | 'LOW'] ?? 'success';
-  const urgencyDot =
-    urgencyDotMap[incident.urgency as 'HIGH' | 'MEDIUM' | 'LOW'] ?? urgencyDotMap.LOW;
-
   const handleVisibilityChange = (newVisibility: 'PUBLIC' | 'PRIVATE') => {
     startTransition(async () => {
       await updateIncidentVisibility(incident.id, newVisibility);
-      router.refresh();
-    });
-  };
-
-  const handleUrgencyChange = (newUrgency: string) => {
-    startTransition(async () => {
-      await updateIncidentUrgency(incident.id, newUrgency);
       router.refresh();
     });
   };
@@ -170,8 +145,8 @@ export default function IncidentHeader({ incident, users, teams, canManage }: In
       </CardHeader>
 
       <CardContent className="p-4">
-        {/* Responsive grid - 2 cols on mobile, 4 on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* Responsive grid - 2 cols on mobile, 3 on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {/* Service */}
           <Link
             href={`/services/${incident.serviceId}`}
@@ -187,52 +162,6 @@ export default function IncidentHeader({ incident, users, teams, canManage }: In
               {incident.service.name}
             </p>
           </Link>
-
-          {/* Urgency - Editable */}
-          <div className="flex flex-col p-3 bg-white rounded-xl border border-slate-200 shadow-sm h-20 justify-center">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                Urgency
-              </span>
-            </div>
-            {canManage ? (
-              <Select
-                value={incident.urgency}
-                onValueChange={handleUrgencyChange}
-                disabled={isPending}
-              >
-                <SelectTrigger className="h-7 w-fit border-0 bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:hidden">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="HIGH">
-                    <div className="flex items-center gap-2 font-semibold text-red-700">
-                      <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      HIGH
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="MEDIUM">
-                    <div className="flex items-center gap-2 font-semibold text-amber-700">
-                      <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      MEDIUM
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="LOW">
-                    <div className="flex items-center gap-2 font-semibold text-emerald-700">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      LOW
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Badge variant={urgencyVariant} size="sm" className="gap-1.5 uppercase">
-                <span className={`h-2 w-2 rounded-full ${urgencyDot}`} />
-                {incident.urgency}
-              </Badge>
-            )}
-          </div>
 
           {/* Assignee */}
           <div className="flex flex-col p-3 bg-white rounded-xl border border-slate-200 shadow-sm h-20 justify-center relative overflow-hidden">

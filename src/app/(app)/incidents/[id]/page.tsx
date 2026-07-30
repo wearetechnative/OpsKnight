@@ -10,7 +10,6 @@ import {
   removeWatcher,
   resolveIncidentWithNote,
   updateIncidentStatus,
-  updateIncidentUrgency,
 } from '../actions';
 import { getPostmortem } from '@/app/(app)/postmortems/actions';
 import IncidentHeader from '@/components/incident/IncidentHeader';
@@ -171,12 +170,6 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
     await resolveIncidentWithNote(id, resolution);
   }
 
-  async function _handleUrgencyChange(formData: FormData) {
-    'use server';
-    const newUrgency = formData.get('urgency') as string;
-    await updateIncidentUrgency(id, newUrgency);
-  }
-
   async function handleAddWatcher(formData: FormData) {
     'use server';
     const watcherId = formData.get('watcherId') as string;
@@ -204,14 +197,6 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
         return 'from-red-600 to-rose-700';
     }
   };
-  const urgencyVariantMap: Record<'HIGH' | 'MEDIUM' | 'LOW', 'danger' | 'warning' | 'success'> = {
-    HIGH: 'danger',
-    MEDIUM: 'warning',
-    LOW: 'success',
-  };
-  const urgencyVariant =
-    urgencyVariantMap[incident.urgency as 'HIGH' | 'MEDIUM' | 'LOW'] ?? 'success';
-
   return (
     <div className="w-full px-4 py-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 [zoom:0.8]">
       {/* Premium Header - Glassmorphic with Accent Bar */}
@@ -282,7 +267,7 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
       </div>
 
       {/* Stats Grid - Core incident and source account fields */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mt-8">
         {/* Priority Card */}
         <div className="group relative rounded-xl border border-slate-200/60 bg-white/50 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -300,30 +285,6 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
               priority={incident.priority}
               canManage={canManageIncident}
             />
-          </div>
-        </div>
-
-        {/* Urgency Card */}
-        <div className="group relative rounded-xl border border-slate-200/60 bg-white/50 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-red-400 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
-                <AlertCircle className="w-4 h-4" />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Urgency
-              </span>
-            </div>
-            <div className="flex items-center">
-              <Badge
-                variant={urgencyVariant}
-                size="sm"
-                className="uppercase font-bold tracking-wide"
-              >
-                {incident.urgency}
-              </Badge>
-            </div>
           </div>
         </div>
 

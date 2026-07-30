@@ -73,6 +73,24 @@ function truncateDedupKey(key: string): string {
 
 type AccountMetadata = { accountName: string | null; accountId: string | null };
 
+function extractIncidentPriority(details: unknown): string | null {
+  if (!details || typeof details !== 'object' || Array.isArray(details)) return null;
+
+  const record = details as Record<string, unknown>;
+  const explicitPriority = record.priority ?? record.Priority;
+  if (typeof explicitPriority === 'string') {
+    const normalized = explicitPriority.trim().toUpperCase();
+    if (/^P[1-5]$/.test(normalized)) return normalized;
+  }
+
+  if (typeof record.tags === 'string') {
+    const match = record.tags.match(/(?:^|,)\s*(P[1-5])\s*(?:,|$)/i);
+    if (match) return match[1].toUpperCase();
+  }
+
+  return null;
+}
+
 /** Extract cloud account metadata from explicit webhook fields or receiver tags. */
 export function extractAccountMetadata(details: unknown, dedupKey: string): AccountMetadata {
   const record =
@@ -175,6 +193,9 @@ export async function processEvent(
     });
 
     if (event_action === 'trigger') {
+      const accountMetadata = extractAccountMetadata(eventData.custom_details, dedup_key);
+      const priority = extractIncidentPriority(eventData.custom_details);
+
       if (existingIncident) {
         // Deduplication: Just append the alert to the incident
         await tx.alert.update({
@@ -190,6 +211,15 @@ export async function processEvent(
           },
         });
 
+        const updatedIncident = await tx.incident.update({
+          where: { id: existingIncident.id },
+          data: {
+            ...(priority ? { priority } : {}),
+            ...(accountMetadata.accountName ? { accountName: accountMetadata.accountName } : {}),
+            ...(accountMetadata.accountId ? { accountId: accountMetadata.accountId } : {}),
+          },
+        });
+
         logger.info('event.deduplicated', {
           incidentId: existingIncident.id,
           dedupKey: dedup_key,
@@ -197,12 +227,11 @@ export async function processEvent(
           alertCount: 'appended',
         });
 
-        return { action: 'deduplicated', incident: existingIncident };
+        return { action: 'deduplicated', incident: updatedIncident };
       }
 
       // Create New Incident with proper severity → urgency mapping
       const urgency = mapSeverityToUrgency(eventData.severity);
-      const accountMetadata = extractAccountMetadata(eventData.custom_details, dedup_key);
 
       // Sanitize title to prevent XSS and truncate to reasonable length
       const sanitizedTitle = truncateString(sanitizeText(eventData.summary.trim()), 500);
@@ -221,6 +250,7 @@ export async function processEvent(
           description: truncatedDescription,
           status: 'OPEN',
           urgency,
+          priority,
           dedupKey: dedup_key,
           accountName: accountMetadata.accountName,
           accountId: accountMetadata.accountId,

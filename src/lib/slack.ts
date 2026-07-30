@@ -288,10 +288,6 @@ export function buildSlackBlocks(
         },
         {
           type: 'mrkdwn',
-          text: `*Urgency:*\n${incident.urgency}`,
-        },
-        {
-          type: 'mrkdwn',
           text: `*Assignee:*\n${incident.assigneeName || 'Unassigned'}`,
         },
         ...(incident.accountName

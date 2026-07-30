@@ -39,12 +39,6 @@ const STATUS_STYLES: Record<string, string> = {
     'bg-slate-50 text-slate-400 dark:bg-slate-900/20 dark:text-slate-600 border-slate-100 dark:border-slate-800',
 };
 
-const URGENCY_STYLES: Record<string, string> = {
-  HIGH: 'bg-red-50 text-red-700 dark:bg-red-900/10 dark:text-red-400',
-  MEDIUM: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  LOW: 'bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-400',
-};
-
 const STATUS_GRADIENT: Record<string, string> = {
   OPEN: 'from-red-600 to-red-500',
   ACKNOWLEDGED: 'from-slate-600 to-slate-500',
@@ -121,20 +115,13 @@ export default async function MobileIncidentDetailPage({ params }: PageProps) {
         />
 
         <div className="p-4 pt-5">
-          {/* Status & Urgency Badges */}
+          {/* Status Badge */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span
               className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wide border ${STATUS_STYLES[incident.status] || STATUS_STYLES.OPEN}`}
             >
               {incident.status}
             </span>
-            {incident.urgency && (
-              <span
-                className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${URGENCY_STYLES[incident.urgency] || URGENCY_STYLES.LOW}`}
-              >
-                {incident.urgency}
-              </span>
-            )}
           </div>
 
           {/* Title */}
