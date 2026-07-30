@@ -36,8 +36,6 @@ type IncidentSidebarProps = {
     escalationStatus?: string | null;
     currentEscalationStep?: number | null;
     nextEscalationAt?: Date | null;
-    accountName?: string | null;
-    accountId?: string | null;
   };
   users: Array<{
     id: string;
@@ -105,28 +103,6 @@ export default function IncidentSidebar({
           canManage={canManage}
         />
       </div>
-
-      {(incident.accountName || incident.accountId) && (
-        <div className="rounded-xl border border-slate-200/60 bg-white/50 shadow-sm p-4">
-          <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-4">
-            Cloud Account
-          </h3>
-          <dl className="space-y-3 text-sm">
-            {incident.accountName && (
-              <div>
-                <dt className="text-xs text-slate-500">Account name</dt>
-                <dd className="font-medium text-slate-900">{incident.accountName}</dd>
-              </div>
-            )}
-            {incident.accountId && (
-              <div>
-                <dt className="text-xs text-slate-500">Account ID</dt>
-                <dd className="font-mono font-medium text-slate-900">{incident.accountId}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-      )}
 
       {/* SLA Section */}
       <div className="rounded-xl border border-slate-200/60 bg-white/50 shadow-sm p-4">

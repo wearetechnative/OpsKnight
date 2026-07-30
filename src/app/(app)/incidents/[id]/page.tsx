@@ -38,10 +38,12 @@ import {
   AlertCircle,
   Activity,
   ArrowLeft,
+  Building2,
   CheckCircle2,
   Clock,
   FileText,
   History,
+  Hash,
   MessageSquare,
   Settings2,
   Timer,
@@ -279,8 +281,8 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
         </div>
       </div>
 
-      {/* Stats Grid - Priority, Urgency, Assignee, Service */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+      {/* Stats Grid - Core incident and source account fields */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-8">
         {/* Priority Card */}
         <div className="group relative rounded-xl border border-slate-200/60 bg-white/50 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -385,6 +387,42 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
             </div>
             <div className="font-semibold text-sm truncate text-slate-900 pl-1">
               {incident.service.name}
+            </div>
+          </div>
+        </div>
+
+        {/* Account Name Card */}
+        <div className="group relative rounded-xl border border-slate-200/60 bg-white/50 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-cyan-400 to-sky-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-cyan-50 flex items-center justify-center text-cyan-600">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Account Name
+              </span>
+            </div>
+            <div className="font-semibold text-sm truncate text-slate-900 pl-1">
+              {incident.accountName || 'Not available'}
+            </div>
+          </div>
+        </div>
+
+        {/* Account ID Card */}
+        <div className="group relative rounded-xl border border-slate-200/60 bg-white/50 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-slate-400 to-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                <Hash className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Account ID
+              </span>
+            </div>
+            <div className="font-mono font-semibold text-sm truncate text-slate-900 pl-1">
+              {incident.accountId || 'Not available'}
             </div>
           </div>
         </div>
@@ -575,8 +613,6 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
               escalationStatus: incident.escalationStatus,
               currentEscalationStep: incident.currentEscalationStep,
               nextEscalationAt: incident.nextEscalationAt,
-              accountName: incident.accountName,
-              accountId: incident.accountId,
             }}
             users={users}
             watchers={incident.watchers.map(w => ({
