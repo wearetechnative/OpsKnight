@@ -64,14 +64,14 @@ export default function MobileServicesClient({
     <div className="flex flex-col gap-4 p-4 pb-24">
       <div>
         <h1 className="text-xl font-bold tracking-tight text-[color:var(--text-primary)]">
-          Services
+          Customers
         </h1>
         <p className="mt-1 text-xs font-medium text-[color:var(--text-muted)]">
           {healthyCount} healthy · {degradedCount} with issues
         </p>
       </div>
 
-      <MobileSearchWithParams placeholder="Search services..." />
+      <MobileSearchWithParams placeholder="Search customers..." />
 
       <div className="flex flex-col gap-3">
         {services.length === 0 ? (
@@ -139,8 +139,8 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[color:var(--border)] bg-[color:var(--bg-secondary)] px-6 py-10 text-center">
       <div className="text-3xl">{'\u{1F527}'}</div>
-      <h3 className="text-sm font-semibold text-[color:var(--text-primary)]">No services</h3>
-      <p className="text-xs text-[color:var(--text-muted)]">Use desktop to create services</p>
+      <h3 className="text-sm font-semibold text-[color:var(--text-primary)]">No customers</h3>
+      <p className="text-xs text-[color:var(--text-muted)]">Use desktop to create customers</p>
     </div>
   );
 }

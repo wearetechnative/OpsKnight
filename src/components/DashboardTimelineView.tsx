@@ -128,7 +128,7 @@ export default function DashboardTimelineView({ incidents, services }: Dashboard
               background: 'white',
             }}
           >
-            <option value="all">All Services</option>
+            <option value="all">All Customers</option>
             {services.map(service => (
               <option key={service.id} value={service.id}>
                 {service.name}

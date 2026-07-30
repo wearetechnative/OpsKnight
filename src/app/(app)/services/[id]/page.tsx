@@ -234,7 +234,7 @@ export default async function ServiceDetailPage({ params, searchParams }: Servic
           className="hover:text-primary transition-colors flex items-center gap-1"
         >
           <ChevronLeft className="h-4 w-4" />
-          Services
+          Customers
         </Link>
         <span className="opacity-30">/</span>
         <span className="font-medium text-foreground">{service.name}</span>
@@ -343,7 +343,7 @@ export default async function ServiceDetailPage({ params, searchParams }: Servic
               </h3>
               <p className="text-sm text-slate-500">
                 {tab === 'incidents'
-                  ? 'Viewing incidents currently affecting this service.'
+                  ? 'Viewing incidents currently affecting this customer.'
                   : 'Viewing Resolved and Closed incidents.'}
               </p>
             </div>

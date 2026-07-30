@@ -26,7 +26,7 @@ export default function QuickActionsPanel({ greeting, userName }: QuickActionsPa
     },
     {
       href: '/services',
-      label: 'Manage Services',
+      label: 'Manage Customers',
       icon: <Settings className="w-4 h-4" />,
       variant: 'secondary' as const,
     },

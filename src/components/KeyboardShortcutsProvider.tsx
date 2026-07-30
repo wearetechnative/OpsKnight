@@ -25,7 +25,7 @@ export const KEYBOARD_SHORTCUTS = [
   { keys: ['g', 'h'], description: 'Go to Dashboard', category: 'Navigation' },
   { keys: ['g', 'd'], description: 'Go to Dashboard', category: 'Navigation' },
   { keys: ['g', 'i'], description: 'Go to Incidents', category: 'Navigation' },
-  { keys: ['g', 's'], description: 'Go to Services', category: 'Navigation' },
+  { keys: ['g', 's'], description: 'Go to Customers', category: 'Navigation' },
   { keys: ['g', 'u'], description: 'Go to Users', category: 'Navigation' },
   { keys: ['g', 't'], description: 'Go to Teams', category: 'Navigation' },
 

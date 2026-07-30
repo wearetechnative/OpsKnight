@@ -137,7 +137,7 @@ export default function AnalyticsFilters({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase text-muted-foreground">Service</Label>
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">Customer</Label>
             <Select
               value={currentFilters.service || 'ALL'}
               onValueChange={val => handleFilterChange('service', val)}
@@ -145,11 +145,11 @@ export default function AnalyticsFilters({
               <SelectTrigger className="h-10 bg-muted/30 focus:bg-background transition-colors text-sm">
                 <div className="flex items-center gap-2 truncate">
                   <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <SelectValue placeholder="All Services" />
+                  <SelectValue placeholder="All Customers" />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All services</SelectItem>
+                <SelectItem value="ALL">All customers</SelectItem>
                 {services
                   .slice()
                   .sort((a, b) => a.name.localeCompare(b.name))

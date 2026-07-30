@@ -53,10 +53,10 @@ const CompactStatsOverview = memo(function CompactStatsOverview({
         description: 'Unassigned incidents',
       },
       {
-        label: 'Services',
+        label: 'Customers',
         value: formatNumber(servicesCount),
         className: 'text-foreground',
-        description: 'Total services',
+        description: 'Total customers',
       },
     ],
     [openIncidents, criticalIncidents, unassignedIncidents, servicesCount]

@@ -258,7 +258,7 @@ export default function DashboardIncidentFilters({
               />
             </div>
 
-            {/* Service */}
+            {/* Customer */}
             <Select
               value={currentService}
               onValueChange={val => updateParams({ service: val === 'all' ? 'all' : val })}
@@ -266,11 +266,11 @@ export default function DashboardIncidentFilters({
               <SelectTrigger className="h-9 text-xs bg-white border-slate-200 focus:border-blue-300 rounded-lg">
                 <div className="flex items-center gap-1.5">
                   <Briefcase className="h-3.5 w-3.5 text-blue-500" />
-                  <SelectValue placeholder="Service" />
+                  <SelectValue placeholder="Customer" />
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-lg">
-                <SelectItem value="all">All services</SelectItem>
+                <SelectItem value="all">All customers</SelectItem>
                 {services.map(service => (
                   <SelectItem key={service.id} value={service.id}>
                     {service.name}

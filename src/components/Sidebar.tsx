@@ -59,7 +59,7 @@ const navigationItems: NavItem[] = [
   },
   {
     href: '/services',
-    label: 'Services',
+    label: 'Customers',
     icon: <Server />,
   },
 

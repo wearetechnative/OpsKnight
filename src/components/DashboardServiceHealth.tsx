@@ -115,7 +115,7 @@ export default function DashboardServiceHealth({ services }: DashboardServiceHea
       <div className="flex justify-between items-center mb-5">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-foreground">Service Health Overview</h3>
+            <h3 className="text-base font-bold text-foreground">Customer Health Overview</h3>
             <Badge variant="neutral" size="sm">
               {services.length}
             </Badge>
@@ -171,9 +171,9 @@ export default function DashboardServiceHealth({ services }: DashboardServiceHea
             <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
               <Activity className="h-7 w-7 text-neutral-400" />
             </div>
-            <p className="text-sm font-semibold text-foreground mb-1">No Services Found</p>
+            <p className="text-sm font-semibold text-foreground mb-1">No Customers Found</p>
             <p className="text-xs text-muted-foreground">
-              Services will appear here once they are added
+              Customers will appear here once they are added
             </p>
           </div>
         ) : (
@@ -239,7 +239,7 @@ export default function DashboardServiceHealth({ services }: DashboardServiceHea
           <Button asChild variant="outline" size="sm" className="gap-2 font-semibold">
             <Link href="/services">
               <TrendingUp className="h-3.5 w-3.5" />
-              View {sortedServices.length - 5} More Services
+              View {sortedServices.length - 5} More Customers
             </Link>
           </Button>
         </div>

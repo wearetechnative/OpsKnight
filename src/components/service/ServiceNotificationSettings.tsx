@@ -288,19 +288,19 @@ export default function ServiceNotificationSettings({
       <Alert className="bg-amber-50 border-amber-200 text-amber-800">
         <Info className="h-4 w-4 text-amber-600" />
         <AlertTitle className="text-amber-900 font-semibold mb-1">
-          Service Notifications (Isolated)
+          Customer Notifications (Isolated)
         </AlertTitle>
         <AlertDescription className="text-amber-800">
-          Service notifications are completely separate from escalation and user preferences. They
+          Customer notifications are completely separate from escalation and user preferences. They
           use only the channels configured below and do NOT check user preferences.
         </AlertDescription>
       </Alert>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Service Notification Channels</CardTitle>
+          <CardTitle className="text-lg">Customer Notification Channels</CardTitle>
           <CardDescription>
-            Select which channels to use for service-level notifications. These are isolated from
+            Select which channels to use for customer-level notifications. These are isolated from
             escalation notifications.
           </CardDescription>
         </CardHeader>

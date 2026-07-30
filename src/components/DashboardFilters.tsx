@@ -181,7 +181,7 @@ export default function DashboardFilters({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase text-muted-foreground">Service</Label>
+            <Label className="text-xs font-semibold uppercase text-muted-foreground">Customer</Label>
             <Select
               value={initialService || 'ALL'}
               onValueChange={val => handleFilterChange('service', val)}
@@ -189,11 +189,11 @@ export default function DashboardFilters({
               <SelectTrigger className="h-9 bg-muted/30 focus:bg-background transition-colors text-sm">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <SelectValue placeholder="All Services" />
+                  <SelectValue placeholder="All Customers" />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All Services</SelectItem>
+                <SelectItem value="ALL">All Customers</SelectItem>
                 {services.map(s => (
                   <SelectItem key={s.id} value={s.id}>
                     {s.name}

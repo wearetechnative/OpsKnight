@@ -14,7 +14,7 @@ const shortcuts: Shortcut[] = [
   { keys: ['⌘', '/'], description: 'Show keyboard shortcuts', category: 'Navigation' },
   { keys: ['G', 'D'], description: 'Go to Dashboard', category: 'Navigation' },
   { keys: ['G', 'I'], description: 'Go to Incidents', category: 'Navigation' },
-  { keys: ['G', 'S'], description: 'Go to Services', category: 'Navigation' },
+  { keys: ['G', 'S'], description: 'Go to Customers', category: 'Navigation' },
   { keys: ['G', 'T'], description: 'Go to Teams', category: 'Navigation' },
   { keys: ['G', 'U'], description: 'Go to Users', category: 'Navigation' },
   { keys: ['G', 'C'], description: 'Go to Schedules', category: 'Navigation' },

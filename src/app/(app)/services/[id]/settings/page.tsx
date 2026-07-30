@@ -87,12 +87,12 @@ export default async function ServiceSettingsPage({
       <main className="p-8 max-w-4xl mx-auto">
         <Card className="text-center py-12">
           <div className="flex flex-col items-center justify-center p-6">
-            <h2 className="text-2xl font-semibold mb-2">Service Not Found</h2>
+            <h2 className="text-2xl font-semibold mb-2">Customer Not Found</h2>
             <p className="text-slate-500 mb-6">
-              The service you&apos;re looking for doesn&apos;t exist.
+              The customer you&apos;re looking for doesn&apos;t exist.
             </p>
             <Button asChild>
-              <Link href="/services">Back to Services</Link>
+              <Link href="/services">Back to Customers</Link>
             </Button>
           </div>
         </Card>
@@ -111,7 +111,7 @@ export default async function ServiceSettingsPage({
           className="hover:text-primary transition-colors flex items-center gap-1"
         >
           <ChevronLeft className="h-4 w-4" />
-          Services
+          Customers
         </Link>
         <span className="opacity-30">/</span>
         <Link href={`/services/${id}`} className="hover:text-primary transition-colors">
@@ -125,7 +125,7 @@ export default async function ServiceSettingsPage({
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Service Settings
+              Customer Settings
             </h1>
             <p className="text-xs md:text-sm opacity-90 mt-1">
               Manage configuration, ownership, and notifications for {service.name}
@@ -142,7 +142,7 @@ export default async function ServiceSettingsPage({
           <Alert className="bg-emerald-50 border-emerald-200 text-emerald-800">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <AlertTitle className="text-emerald-900 font-medium">Success</AlertTitle>
-            <AlertDescription>Service settings saved successfully.</AlertDescription>
+            <AlertDescription>Customer settings saved successfully.</AlertDescription>
           </Alert>
         )}
 
@@ -151,7 +151,7 @@ export default async function ServiceSettingsPage({
             <AlertCircle className="h-4 w-4 text-red-600" />
             <AlertTitle className="text-red-900 font-medium">Error</AlertTitle>
             <AlertDescription>
-              A service with this name already exists. Please choose a unique name.
+              A customer with this name already exists. Please choose a unique name.
             </AlertDescription>
           </Alert>
         )}
@@ -164,12 +164,12 @@ export default async function ServiceSettingsPage({
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Settings className="h-4 w-4 text-slate-500" /> General Configuration
                 </CardTitle>
-                <CardDescription>Basic information about your service</CardDescription>
+                <CardDescription>Basic information about your customer</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">
-                    Service Name <span className="text-red-500">*</span>
+                    Customer Name <span className="text-red-500">*</span>
                   </Label>
                   <Input id="name" name="name" defaultValue={service.name} required />
                 </div>
@@ -181,7 +181,7 @@ export default async function ServiceSettingsPage({
                     name="description"
                     defaultValue={service.description || ''}
                     rows={3}
-                    placeholder="Describe what this service does..."
+                    placeholder="Describe this customer..."
                     className="resize-none"
                   />
                 </div>
@@ -255,7 +255,7 @@ export default async function ServiceSettingsPage({
                   <Users className="h-4 w-4 text-slate-500" /> Ownership & Escalation
                 </CardTitle>
                 <CardDescription>
-                  Define who owns this service and how incidents are escalated
+                  Define who owns this customer and how incidents are escalated
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

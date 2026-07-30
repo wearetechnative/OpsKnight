@@ -54,7 +54,7 @@ export default async function EditWebhookPage({
           className="hover:text-primary transition-colors flex items-center gap-1"
         >
           <ChevronLeft className="h-4 w-4" />
-          Services
+          Customers
         </Link>
         <span className="opacity-30">/</span>
         <Link href={`/services/${id}`} className="hover:text-primary transition-colors">

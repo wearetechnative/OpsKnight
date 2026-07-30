@@ -359,10 +359,10 @@ export default function DashboardViewer({
           onValueChange={value => handleFilterChange('serviceId', value)}
         >
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="All Services" />
+            <SelectValue placeholder="All Customers" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Services</SelectItem>
+            <SelectItem value="ALL">All Customers</SelectItem>
             {filterOptions.services.map(service => (
               <SelectItem key={service.id} value={service.id}>
                 {service.name}

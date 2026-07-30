@@ -147,7 +147,7 @@ export default function IncidentHeader({ incident, users, teams, canManage }: In
       <CardContent className="p-4">
         {/* Responsive grid - 2 cols on mobile, 3 on desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {/* Service */}
+          {/* Customer */}
           <Link
             href={`/services/${incident.serviceId}`}
             className="group flex flex-col p-3 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-primary/50 hover:shadow-md transition-all h-20 justify-center"
@@ -155,7 +155,7 @@ export default function IncidentHeader({ incident, users, teams, canManage }: In
             <div className="flex items-center gap-2 mb-1">
               <Server className="h-3.5 w-3.5 text-slate-400" />
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                Service
+                Customer
               </span>
             </div>
             <p className="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors truncate">

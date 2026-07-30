@@ -259,7 +259,7 @@ export default function TemplateCreateForm({ services, action }: TemplateCreateF
                         align="start"
                       >
                         <Command>
-                          <CommandInput placeholder="Search services..." />
+                          <CommandInput placeholder="Search customers..." />
                           <CommandList>
                             <CommandEmpty>No service found.</CommandEmpty>
                             <CommandGroup>

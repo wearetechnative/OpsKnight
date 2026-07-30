@@ -326,7 +326,7 @@ export default async function TeamsPage({ searchParams }: TeamsPageProps) {
               Teams
             </h1>
             <p className="text-xs md:text-sm opacity-90 mt-1 text-white">
-              Manage team ownership, roles, and service coverage
+              Manage team ownership, roles, and customer coverage
             </p>
           </div>
 
@@ -350,7 +350,7 @@ export default async function TeamsPage({ searchParams }: TeamsPageProps) {
                 <div className="text-xl md:text-2xl font-extrabold text-green-200">
                   {stats.totalServices}
                 </div>
-                <div className="text-[10px] md:text-xs opacity-90">Services</div>
+                <div className="text-[10px] md:text-xs opacity-90">Customers</div>
               </CardContent>
             </Card>
             <Card className="bg-white/10 border-white/20 backdrop-blur">
@@ -373,7 +373,7 @@ export default async function TeamsPage({ searchParams }: TeamsPageProps) {
             <Card id="create-team">
               <CardHeader>
                 <CardTitle>Create New Team</CardTitle>
-                <CardDescription>Organize responders and assign services</CardDescription>
+                <CardDescription>Organize responders and assign customers</CardDescription>
               </CardHeader>
               <CardContent>
                 <TeamCreateForm action={createTeam} />
@@ -556,7 +556,7 @@ export default async function TeamsPage({ searchParams }: TeamsPageProps) {
               <Link href="/services">
                 <Button variant="outline" className="w-full justify-start gap-2">
                   <Shield className="h-4 w-4" />
-                  Manage Services
+                  Manage Customers
                 </Button>
               </Link>
               <Link href="/audit">

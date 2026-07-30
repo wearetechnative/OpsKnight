@@ -26,7 +26,7 @@ export default function DashboardFilterChips({ services, users }: FilterChipsPro
   if (serviceId) {
     const service = services.find(s => s.id === serviceId);
     if (service) {
-      activeFilters.push({ key: 'service', label: 'Service', value: service.name });
+      activeFilters.push({ key: 'service', label: 'Customer', value: service.name });
     }
   }
 

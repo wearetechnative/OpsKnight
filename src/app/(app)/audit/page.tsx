@@ -46,7 +46,7 @@ export default async function AuditLogPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Audit Log</h1>
-          <p className="text-muted-foreground">User, team, and service configuration changes.</p>
+          <p className="text-muted-foreground">User, team, and customer configuration changes.</p>
         </div>
       </div>
 
@@ -116,7 +116,7 @@ export default async function AuditLogPage() {
               {logs.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="p-8 text-center text-muted-foreground">
-                    No audit entries yet. Actions on users, teams, and services will appear here.
+                    No audit entries yet. Actions on users, teams, and customers will appear here.
                   </TableCell>
                 </TableRow>
               )}

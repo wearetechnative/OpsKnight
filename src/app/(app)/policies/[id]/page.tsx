@@ -120,7 +120,7 @@ export default async function PolicyDetailPage({
                   <div className="text-xl md:text-2xl font-extrabold text-green-200">
                     {services.length}
                   </div>
-                  <div className="text-[10px] md:text-xs opacity-90">Services</div>
+                  <div className="text-[10px] md:text-xs opacity-90">Customers</div>
                 </CardContent>
               </Card>
             </div>
@@ -221,7 +221,7 @@ export default async function PolicyDetailPage({
             </CardHeader>
             <CardContent>
               {services.length === 0 ? (
-                <p className="text-sm text-slate-500 italic">No services are using this policy.</p>
+                <p className="text-sm text-slate-500 italic">No customers are using this policy.</p>
               ) : (
                 <div className="space-y-2">
                   {services.map(service => (

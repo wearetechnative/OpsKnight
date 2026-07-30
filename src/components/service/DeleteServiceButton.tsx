@@ -33,10 +33,10 @@ export default function DeleteServiceButton({
   };
 
   const warningMessage = hasOpenIncidents
-    ? `⚠️ WARNING: This service has ${incidentCount} incident(s), including open incidents. Deleting this service will permanently remove all associated incidents, integrations, and alerts. This action CANNOT be undone.`
+    ? `⚠️ WARNING: This customer has ${incidentCount} incident(s), including open incidents. Deleting this customer will permanently remove all associated incidents, integrations, and alerts. This action CANNOT be undone.`
     : incidentCount > 0
-      ? `⚠️ WARNING: This service has ${incidentCount} incident(s). Deleting this service will permanently remove all associated incidents, integrations, and alerts. This action CANNOT be undone.`
-      : `⚠️ WARNING: Are you sure you want to delete "${serviceName}"? This will permanently remove the service and all associated integrations and alerts. This action CANNOT be undone.`;
+      ? `⚠️ WARNING: This customer has ${incidentCount} incident(s). Deleting this customer will permanently remove all associated incidents, integrations, and alerts. This action CANNOT be undone.`
+      : `⚠️ WARNING: Are you sure you want to delete "${serviceName}"? This will permanently remove the customer and all associated integrations and alerts. This action CANNOT be undone.`;
 
   return (
     <>
@@ -65,9 +65,9 @@ export default function DeleteServiceButton({
 
       <ConfirmDialog
         isOpen={showConfirm}
-        title="Delete Service"
+        title="Delete Customer"
         message={warningMessage}
-        confirmText="Yes, Delete Service"
+        confirmText="Yes, Delete Customer"
         cancelText="Cancel"
         variant="danger"
         onConfirm={handleConfirm}

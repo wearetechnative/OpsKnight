@@ -92,9 +92,9 @@ export default function ServicesFilters({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Filter className="h-4 w-4" /> Filter Services
+              <Filter className="h-4 w-4" /> Filter Customers
             </CardTitle>
-            <CardDescription>Find services by name, team, status, or tier</CardDescription>
+            <CardDescription>Find customers by name, team, status, or tier</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {hasActiveFilters && (
@@ -120,7 +120,7 @@ export default function ServicesFilters({
             className="cursor-pointer hover:bg-primary/90 hover:text-primary-foreground transition-colors"
             onClick={() => updateParams({ status: 'all' })}
           >
-            All services
+            All customers
           </Badge>
           <Badge
             variant={currentStatus === 'OPERATIONAL' ? 'success' : 'outline'}

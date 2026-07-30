@@ -151,7 +151,7 @@ export default function DashboardAdvancedMetrics({
             fontWeight: '600',
           }}
         >
-          Services Monitored
+          Customers Monitored
         </div>
         <div
           style={{
@@ -163,7 +163,7 @@ export default function DashboardAdvancedMetrics({
         >
           {servicesCount}
         </div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active services</div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active customers</div>
       </div>
     </div>
   );

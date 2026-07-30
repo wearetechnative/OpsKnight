@@ -103,9 +103,9 @@ const formSchema = z.object({
   description: z.string().optional(),
   serviceId: z
     .string({
-      required_error: 'Please select a service.',
+      required_error: 'Please select a customer.',
     })
-    .min(1, 'Please select a service.'),
+    .min(1, 'Please select a customer.'),
   urgency: z.enum(['HIGH', 'MEDIUM', 'LOW']),
   priority: z.string().optional(),
   assigneeId: z.string().optional(),
@@ -316,7 +316,7 @@ export default function CreateIncidentFormModern({
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="text-xs uppercase tracking-wide text-foreground/70 font-bold mb-2 pl-1">
-                        Affected Service
+                        Customer
                       </FormLabel>
                       <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
                         <PopoverTrigger asChild>
@@ -335,7 +335,7 @@ export default function CreateIncidentFormModern({
                                   {services.find(service => service.id === field.value)?.name}
                                 </span>
                               ) : (
-                                'Select service...'
+                                'Select customer...'
                               )}
                               <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
                             </Button>
@@ -346,9 +346,9 @@ export default function CreateIncidentFormModern({
                           align="start"
                         >
                           <Command>
-                            <CommandInput placeholder="Search services..." className="h-10" />
+                            <CommandInput placeholder="Search customers..." className="h-10" />
                             <CommandList>
-                              <CommandEmpty>No service found.</CommandEmpty>
+                              <CommandEmpty>No customer found.</CommandEmpty>
                               <CommandGroup>
                                 {services.map(service => (
                                   <CommandItem
@@ -686,7 +686,7 @@ export default function CreateIncidentFormModern({
 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Info className="h-3 w-3" />
-                  Notifications follow escalation and service rules automatically.
+                  Notifications follow escalation and customer routing rules automatically.
                 </div>
               </div>
             </div>

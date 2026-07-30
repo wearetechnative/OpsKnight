@@ -617,9 +617,9 @@ export default async function Dashboard({
                           )}
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-slate-800">Services at Risk</h4>
+                          <h4 className="text-sm font-bold text-slate-800">Customers at Risk</h4>
                           <p className="text-[10px] text-slate-500 font-medium">
-                            Active by service
+                            Active by customer
                           </p>
                         </div>
                       </div>
@@ -630,7 +630,7 @@ export default async function Dashboard({
                       {servicesAtRisk.length === 0 ? (
                         <div className="py-6 text-center">
                           <List className="w-6 h-6 mx-auto text-amber-200 mb-2" />
-                          <p className="text-xs text-slate-500 font-medium">All services healthy</p>
+                          <p className="text-xs text-slate-500 font-medium">All customers healthy</p>
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -664,7 +664,7 @@ export default async function Dashboard({
                         href="/services"
                         className="flex items-center justify-center gap-1.5 mt-auto py-2 text-[11px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50/50 hover:bg-amber-100/70 rounded-lg transition-colors"
                       >
-                        View services &rarr;
+                        View customers &rarr;
                       </Link>
                     </div>
                   </div>

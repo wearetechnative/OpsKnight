@@ -155,7 +155,7 @@ function IncidentList({ incidents, serviceId }: IncidentListProps) {
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-1">No incidents recorded</h3>
         <p className="text-slate-500 max-w-sm mb-6">
-          This service is running smoothly with no recorded incidents.
+          This customer has no recorded incidents.
         </p>
         <Button asChild>
           <Link href={`/incidents/create?serviceId=${serviceId}`}>Create Incident</Link>

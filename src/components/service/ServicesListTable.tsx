@@ -118,7 +118,7 @@ export default function ServicesListTable({
       <div className="px-4 md:px-5 py-3.5 bg-white border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
         <div className="min-w-[220px]">
           <div className="text-[11px] uppercase tracking-[0.14em] text-slate-500 font-extrabold">
-            Service directory
+            Customer directory
           </div>
           <div className="text-sm text-slate-600 mt-0.5">
             Showing{' '}
@@ -138,9 +138,9 @@ export default function ServicesListTable({
         {services.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-gradient-to-br from-slate-50 to-white p-10 text-center">
             <div className="text-4xl opacity-30 mb-3">!</div>
-            <p className="text-base font-bold text-slate-700 mb-1">No services found</p>
+            <p className="text-base font-bold text-slate-700 mb-1">No customers found</p>
             <p className="text-sm text-slate-500 m-0">
-              Try adjusting filters or create a new service.
+              Try adjusting filters or create a new customer.
             </p>
           </div>
         ) : (

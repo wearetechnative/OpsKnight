@@ -66,11 +66,11 @@ const QUICK_ACTIONS = [
   },
   {
     id: 'qa-services',
-    label: 'View all services',
+    label: 'View all customers',
     query: 'service',
     icon: Wrench,
     category: 'Navigation',
-    description: 'Manage services',
+    description: 'Manage customers',
     href: '/services',
   },
   {

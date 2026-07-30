@@ -256,7 +256,7 @@ export default function IncidentTableMobile({
 
               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 <div style={{ marginBottom: '0.25rem' }}>
-                  <strong>Service:</strong> {incident.service.name}
+                  <strong>Customer:</strong> {incident.service.name}
                 </div>
                 <div style={{ marginBottom: '0.25rem' }}>
                   <strong>Assignee:</strong>{' '}

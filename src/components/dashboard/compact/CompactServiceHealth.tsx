@@ -91,9 +91,9 @@ const CompactServiceHealth = memo(function CompactServiceHealth({
       <div
         className="p-5 text-center text-muted-foreground text-sm"
         role="status"
-        aria-label="All services operational"
+        aria-label="All customers operational"
       >
-        All services operational
+        All customers operational
       </div>
     );
   }

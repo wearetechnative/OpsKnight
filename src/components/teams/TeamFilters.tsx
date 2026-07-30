@@ -58,7 +58,7 @@ export default function TeamFilters() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="minServices">Minimum Services</Label>
+              <Label htmlFor="minServices">Minimum Customers</Label>
               <Input
                 id="minServices"
                 name="minServices"
@@ -103,7 +103,7 @@ export default function TeamFilters() {
             )}
             {minServices && (
               <Badge variant="secondary" size="xs" className="gap-1">
-                Min Services: {minServices}
+                Min Customers: {minServices}
               </Badge>
             )}
           </div>

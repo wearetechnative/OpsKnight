@@ -283,7 +283,7 @@ export default function CreateIncidentForm({
                 color: 'var(--text-primary)',
               }}
             >
-              Service <span style={{ color: 'var(--danger)' }}>*</span>
+              Customer <span style={{ color: 'var(--danger)' }}>*</span>
             </label>
             <select
               name="serviceId"
@@ -303,7 +303,7 @@ export default function CreateIncidentForm({
                 cursor: 'pointer',
               }}
             >
-              <option value="">Select a service...</option>
+              <option value="">Select a customer...</option>
               {services.map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name}
@@ -589,7 +589,7 @@ export default function CreateIncidentForm({
                 color: 'var(--text-muted)',
               }}
             >
-              Notifications follow escalation policy and service configuration automatically.
+              Notifications follow escalation policy and customer configuration automatically.
             </div>
           </div>
         </div>

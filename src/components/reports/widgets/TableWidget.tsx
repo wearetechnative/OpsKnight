@@ -87,7 +87,7 @@ const TableWidget = memo(function TableWidget({ data, metricKey, maxRows = 5 }: 
 function getColumnsForMetric(metricKey: string): ColumnConfig[] {
   const configs: Record<string, ColumnConfig[]> = {
     topServices: [
-      { key: 'name', label: 'Service' },
+      { key: 'name', label: 'Customer' },
       { key: 'count', label: 'Incidents', align: 'right' },
     ],
     assigneeLoad: [
@@ -95,7 +95,7 @@ function getColumnsForMetric(metricKey: string): ColumnConfig[] {
       { key: 'count', label: 'Incidents', align: 'right' },
     ],
     serviceMetrics: [
-      { key: 'name', label: 'Service' },
+      { key: 'name', label: 'Customer' },
       { key: 'status', label: 'Status', align: 'center' },
       { key: 'count', label: 'Incidents', align: 'right' },
       {
@@ -120,7 +120,7 @@ function getColumnsForMetric(metricKey: string): ColumnConfig[] {
       { key: 'count', label: 'Occurrences', align: 'right' },
     ],
     serviceSlaTable: [
-      { key: 'name', label: 'Service' },
+      { key: 'name', label: 'Customer' },
       { key: 'ackRate', label: 'Ack Rate', align: 'right', format: v => `${(v ?? 0).toFixed(0)}%` },
       {
         key: 'resolveRate',

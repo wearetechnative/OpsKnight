@@ -153,7 +153,7 @@ const typeIcons: Record<ResultType, ReactElement> = {
 
 const quickLinks = [
   { href: '/m/incidents', label: 'Incidents' },
-  { href: '/m/services', label: 'Services' },
+  { href: '/m/services', label: 'Customers' },
   { href: '/m/teams', label: 'Teams' },
   { href: '/m/schedules', label: 'Schedules' },
 ];

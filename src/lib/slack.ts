@@ -282,7 +282,7 @@ export function buildSlackBlocks(
       fields: [
         {
           type: 'mrkdwn',
-          text: `*Service:*\n${incident.serviceName}`,
+          text: `*Customer:*\n${incident.serviceName}`,
         },
         {
           type: 'mrkdwn',

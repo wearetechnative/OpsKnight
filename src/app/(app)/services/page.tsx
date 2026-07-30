@@ -205,10 +205,10 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2 text-white">
               <Server className="h-6 w-6 md:h-8 md:w-8" />
-              Services
+              Customers
             </h1>
             <p className="text-xs md:text-sm opacity-90 mt-1 text-white">
-              Monitor service health and performance
+              Manage customers, alert routing, and notification channels
             </p>
             <p className="text-[11px] md:text-xs opacity-80 mt-1">
               Metrics shown for the last 30 days.
@@ -222,7 +222,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
             <Card className="bg-white/10 border-white/20 backdrop-blur">
               <CardContent className="p-3 md:p-4 text-center">
                 <div className="text-xl md:text-2xl font-extrabold">{totalServices}</div>
-                <div className="text-[10px] md:text-xs opacity-90">Total Services</div>
+                <div className="text-[10px] md:text-xs opacity-90">Total Customers</div>
               </CardContent>
             </Card>
             <Card className="bg-white/10 border-white/20 backdrop-blur">
@@ -260,7 +260,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
             <XCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>
-              A service with this name already exists. Please choose a unique name.
+              A customer with this name already exists. Please choose a unique name.
             </AlertDescription>
           </Alert>
         )}
@@ -273,7 +273,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Access Restricted</AlertTitle>
             <AlertDescription>
-              You do not have access to create services. Admin or Responder role required.
+              You do not have access to create customers. Admin or Responder role required.
             </AlertDescription>
           </Alert>
         )}
@@ -301,7 +301,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
 
         <Card className="bg-muted/40 border-dashed">
           <CardContent className="p-5 text-sm text-muted-foreground">
-            Service health reflects real-time monitoring and incident activity. Active counts
+            Customer health reflects real-time monitoring and incident activity. Active counts
             exclude snoozed and suppressed incidents.
           </CardContent>
         </Card>

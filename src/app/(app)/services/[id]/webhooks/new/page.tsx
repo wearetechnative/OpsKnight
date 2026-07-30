@@ -36,12 +36,12 @@ export default async function NewWebhookPage({
       <main className="container mx-auto max-w-4xl py-12 px-4">
         <Card className="text-center py-12">
           <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-            <h2 className="text-2xl font-bold mb-2">Service Not Found</h2>
+            <h2 className="text-2xl font-bold mb-2">Customer Not Found</h2>
             <p className="text-muted-foreground mb-6">
-              The service you're looking for doesn't exist.
+              The customer you're looking for doesn't exist.
             </p>
             <Button asChild>
-              <Link href="/services">Back to Services</Link>
+              <Link href="/services">Back to Customers</Link>
             </Button>
           </CardContent>
         </Card>
@@ -59,7 +59,7 @@ export default async function NewWebhookPage({
           className="hover:text-primary transition-colors flex items-center gap-1"
         >
           <ChevronLeft className="h-4 w-4" />
-          Services
+          Customers
         </Link>
         <span className="opacity-30">/</span>
         <Link href={`/services/${id}`} className="hover:text-primary transition-colors">

@@ -42,7 +42,7 @@ export default function FilterChips({ filters, teams, services, users }: FilterC
     const service = services.find(s => s.id === filters.service);
     activeFilters.push({
       type: 'service',
-      label: 'Service',
+      label: 'Customer',
       value: service?.name || filters.service,
     });
   }

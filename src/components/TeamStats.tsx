@@ -65,7 +65,7 @@ export default function TeamStats({
             marginBottom: '0.5rem',
           }}
         >
-          Services
+          Customers
         </div>
         <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-primary)' }}>
           {serviceCount}

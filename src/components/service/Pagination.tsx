@@ -46,7 +46,7 @@ export default function Pagination({
     return (
       <div className="flex items-center justify-between px-4 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
         <span className="text-sm text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{totalItems}</span> service
+          Showing <span className="font-medium text-foreground">{totalItems}</span> customer
           {totalItems !== 1 ? 's' : ''}
         </span>
       </div>
@@ -93,7 +93,7 @@ export default function Pagination({
       <div className="text-sm text-muted-foreground">
         Showing <span className="font-medium text-foreground">{startItem}</span> to{' '}
         <span className="font-medium text-foreground">{endItem}</span> of{' '}
-        <span className="font-medium text-foreground">{totalItems}</span> services
+        <span className="font-medium text-foreground">{totalItems}</span> customers
       </div>
 
       <div className="flex items-center gap-1">

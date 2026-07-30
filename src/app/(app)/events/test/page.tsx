@@ -95,7 +95,7 @@ export default function SendTestAlertPage() {
               type="text"
               value={integrationKey}
               onChange={e => setIntegrationKey(e.target.value)}
-              placeholder="Enter your integration key from a service"
+              placeholder="Enter your integration key from a customer"
               style={{
                 width: '100%',
                 padding: '0.75rem',
@@ -105,7 +105,7 @@ export default function SendTestAlertPage() {
               }}
             />
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              Get this from: Services → Select Service → Manage Integrations
+              Get this from: Customers → Select Customer → Manage Integrations
             </p>
           </div>
 

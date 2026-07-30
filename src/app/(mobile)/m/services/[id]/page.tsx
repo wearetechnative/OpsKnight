@@ -55,10 +55,10 @@ export default async function MobileServiceDetailPage({ params }: PageProps) {
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Services
+        Back to Customers
       </Link>
 
-      {/* Service Header */}
+      {/* Customer Header */}
       <MobileCard className="relative overflow-hidden">
         <div
           className={`absolute inset-x-0 top-0 h-1 ${isHealthy ? 'bg-gradient-to-r from-emerald-500 to-green-500' : 'bg-gradient-to-r from-red-500 to-rose-500'}`}
@@ -94,7 +94,7 @@ export default async function MobileServiceDetailPage({ params }: PageProps) {
         New Incident
       </Link>
 
-      {/* Service Info */}
+      {/* Customer Info */}
       <MobileCard>
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[color:var(--text-muted)]">
           Details

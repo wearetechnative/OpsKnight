@@ -60,7 +60,7 @@ export default async function EventLogsPage() {
                   Incident
                 </TableHead>
                 <TableHead className="text-left p-4 font-semibold text-muted-foreground">
-                  Service
+                  Customer
                 </TableHead>
                 <TableHead className="text-left p-4 font-semibold text-muted-foreground">
                   Event

@@ -55,7 +55,7 @@ export default function PolicyDeleteButton({ policyId, servicesUsingPolicy }: Po
             {servicesUsingPolicy.length > 0 ? (
                 <>
                     <p style={{ fontSize: '0.85rem', color: '#7f1d1d', marginBottom: '0.75rem' }}>
-                        This policy cannot be deleted because it is currently assigned to {servicesUsingPolicy.length} service(s):
+                        This policy cannot be deleted because it is currently assigned to {servicesUsingPolicy.length} customer(s):
                     </p>
                     <ul style={{ 
                         fontSize: '0.85rem', 
@@ -80,7 +80,7 @@ export default function PolicyDeleteButton({ policyId, servicesUsingPolicy }: Po
                         ))}
                     </ul>
                     <p style={{ fontSize: '0.85rem', color: '#7f1d1d', marginBottom: '1rem' }}>
-                        Please reassign or remove the policy from these services before deleting.
+                        Please reassign or remove the policy from these customers before deleting.
                     </p>
                     <button
                         type="button"
@@ -130,7 +130,6 @@ export default function PolicyDeleteButton({ policyId, servicesUsingPolicy }: Po
         </div>
     );
 }
-
 
 
 

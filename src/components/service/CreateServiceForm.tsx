@@ -50,9 +50,9 @@ export default function CreateServiceForm({
           <Plus className="h-6 w-6" />
         </div>
         <div className="text-center">
-          <h3 className="font-semibold text-lg">Create New Service</h3>
+          <h3 className="font-semibold text-lg">Create New Customer</h3>
           <p className="text-muted-foreground text-sm">
-            Add a new service to monitor and manage incidents
+            Add a customer and configure their alert routing
           </p>
         </div>
       </Button>
@@ -65,9 +65,9 @@ export default function CreateServiceForm({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <CardTitle>Create New Service</CardTitle>
+            <CardTitle>Create New Customer</CardTitle>
             <CardDescription>
-              Configure basic settings for your new service. Additional options available after
+              Configure basic settings for your new customer. Additional options available after
               creation.
             </CardDescription>
           </div>
@@ -89,7 +89,7 @@ export default function CreateServiceForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name">
-                Service Name <span className="text-destructive">*</span>
+                Customer Name <span className="text-destructive">*</span>
               </Label>
               <Input id="name" name="name" required placeholder="e.g. API Gateway" />
             </div>
@@ -116,7 +116,7 @@ export default function CreateServiceForm({
               <Input
                 id="description"
                 name="description"
-                placeholder="Brief description of the service"
+                placeholder="Brief description of the customer"
               />
             </div>
 
@@ -217,7 +217,7 @@ export default function CreateServiceForm({
               Pro Tip: Notifications
             </AlertTitle>
             <AlertDescription className="text-amber-800/90 mt-1">
-              Once created, navigate to service settings to configure Slack, Microsoft Teams, and
+              Once created, navigate to customer settings to configure Slack, Microsoft Teams, and
               webhook notifications.
             </AlertDescription>
           </Alert>
@@ -228,7 +228,7 @@ export default function CreateServiceForm({
             Cancel
           </Button>
           <Button type="submit">
-            <Zap className="mr-2 h-4 w-4" /> Create Service
+            <Zap className="mr-2 h-4 w-4" /> Create Customer
           </Button>
         </CardFooter>
       </form>

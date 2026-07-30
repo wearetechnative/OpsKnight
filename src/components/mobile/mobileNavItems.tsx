@@ -63,7 +63,7 @@ export const MOBILE_NAV_ITEMS: MobileNavItem[] = [
   },
   {
     href: '/m/services',
-    label: 'Services',
+    label: 'Customers',
     icon: (
       <svg
         viewBox="0 0 24 24"

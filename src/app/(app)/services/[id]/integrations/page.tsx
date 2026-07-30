@@ -120,10 +120,10 @@ export default async function ServiceIntegrationsPage({
       <main className="p-8 max-w-4xl mx-auto">
         <Card className="text-center py-12">
           <div className="flex flex-col items-center justify-center p-6">
-            <h2 className="text-2xl font-semibold mb-2">Service Not Found</h2>
-            <p className="text-slate-500 mb-6">The service you're looking for doesn't exist.</p>
+            <h2 className="text-2xl font-semibold mb-2">Customer Not Found</h2>
+            <p className="text-slate-500 mb-6">The customer you're looking for doesn't exist.</p>
             <Button asChild>
-              <Link href="/services">Back to Services</Link>
+              <Link href="/services">Back to Customers</Link>
             </Button>
           </div>
         </Card>
@@ -141,7 +141,7 @@ export default async function ServiceIntegrationsPage({
           className="hover:text-primary transition-colors flex items-center gap-1"
         >
           <ChevronLeft className="h-4 w-4" />
-          Services
+          Customers
         </Link>
         <span className="opacity-30">/</span>
         <Link href={`/services/${id}`} className="hover:text-primary transition-colors">
@@ -155,7 +155,7 @@ export default async function ServiceIntegrationsPage({
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Service Integrations
+              Customer Integrations
             </h1>
             <p className="text-xs md:text-sm opacity-90 mt-1">
               Configure alert sources to send incidents to {service.name}
@@ -180,7 +180,7 @@ export default async function ServiceIntegrationsPage({
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Active Integrations</CardTitle>
-                <CardDescription>Endpoints currently connected to this service.</CardDescription>
+                <CardDescription>Alert sources currently connected to this customer.</CardDescription>
               </div>
               <Badge variant="neutral" size="sm">
                 {service.integrations.length}
@@ -195,8 +195,8 @@ export default async function ServiceIntegrationsPage({
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900">No Integrations Connected</h3>
                 <p className="text-slate-500 max-w-md mx-auto mt-2 text-sm leading-relaxed">
-                  Connect external tools to automatically trigger incidents for this service.
-                  Incoming alerts will be routed according to your service policies.
+                  Connect external tools to automatically trigger incidents for this customer.
+                  Incoming alerts will be routed according to this customer&apos;s configuration.
                 </p>
               </div>
             ) : (
