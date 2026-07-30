@@ -71,6 +71,39 @@ function truncateDedupKey(key: string): string {
   return `${key.slice(0, half)}...${key.slice(-half)}`;
 }
 
+type AccountMetadata = { accountName: string | null; accountId: string | null };
+
+/** Extract cloud account metadata from explicit webhook fields or receiver tags. */
+export function extractAccountMetadata(details: unknown, dedupKey: string): AccountMetadata {
+  const record =
+    details && typeof details === 'object' && !Array.isArray(details)
+      ? (details as Record<string, unknown>)
+      : {};
+  const getString = (...keys: string[]) => {
+    for (const key of keys) {
+      const value = record[key];
+      if (typeof value === 'string' && value.trim()) return value.trim();
+      if (typeof value === 'number') return String(value);
+    }
+    return null;
+  };
+
+  const tags = getString('tags') || '';
+  const tagValue = (name: string) => {
+    const match = tags.match(new RegExp(`(?:^|,)\\s*${name}\\s*:\\s*([^,]+)`, 'i'));
+    return match?.[1]?.trim() || null;
+  };
+
+  const accountName =
+    getString('accountName', 'account_name', 'AccountName') || tagValue('AccountName');
+  const explicitAccountId =
+    getString('accountId', 'account_id', 'AccountId') || tagValue('AccountId');
+  // The observability receiver prefixes aliases with the 12-digit AWS account ID.
+  const accountId = explicitAccountId || dedupKey.match(/(?:^|\D)(\d{12})(?:\D|$)/)?.[1] || null;
+
+  return { accountName, accountId };
+}
+
 export async function processEvent(
   payload: EventPayload,
   serviceId: string,
@@ -169,6 +202,7 @@ export async function processEvent(
 
       // Create New Incident with proper severity → urgency mapping
       const urgency = mapSeverityToUrgency(eventData.severity);
+      const accountMetadata = extractAccountMetadata(eventData.custom_details, dedup_key);
 
       // Sanitize title to prevent XSS and truncate to reasonable length
       const sanitizedTitle = truncateString(sanitizeText(eventData.summary.trim()), 500);
@@ -188,6 +222,8 @@ export async function processEvent(
           status: 'OPEN',
           urgency,
           dedupKey: dedup_key,
+          accountName: accountMetadata.accountName,
+          accountId: accountMetadata.accountId,
           serviceId,
         },
       });

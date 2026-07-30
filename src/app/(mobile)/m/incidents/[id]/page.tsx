@@ -239,6 +239,28 @@ export default async function MobileIncidentDetailPage({ params }: PageProps) {
         </div>
       )}
 
+      {(incident.accountName || incident.accountId) && (
+        <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--bg-surface)] shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-[color:var(--border)] bg-[color:var(--bg-secondary)]">
+            <h3 className="text-sm font-bold text-[color:var(--text-primary)]">Cloud Account</h3>
+          </div>
+          <dl className="p-4 grid grid-cols-2 gap-4 text-sm">
+            {incident.accountName && (
+              <div>
+                <dt className="text-xs text-[color:var(--text-muted)]">Account name</dt>
+                <dd className="font-medium text-[color:var(--text-primary)]">{incident.accountName}</dd>
+              </div>
+            )}
+            {incident.accountId && (
+              <div>
+                <dt className="text-xs text-[color:var(--text-muted)]">Account ID</dt>
+                <dd className="font-mono font-medium text-[color:var(--text-primary)]">{incident.accountId}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
+
       {/* Timeline / Events */}
       <div className="rounded-2xl border border-[color:var(--border)] bg-[color:var(--bg-surface)] shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-[color:var(--border)] bg-[color:var(--bg-secondary)]">

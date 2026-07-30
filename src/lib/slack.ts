@@ -19,6 +19,8 @@ interface IncidentDetails {
   urgency: string;
   serviceName: string;
   assigneeName?: string;
+  accountName?: string | null;
+  accountId?: string | null;
 }
 
 interface SlackBlock {
@@ -217,6 +219,8 @@ export async function notifySlackForIncident(
       urgency: incident.urgency,
       serviceName: incident.service.name,
       assigneeName: incident.assignee?.name,
+      accountName: incident.accountName,
+      accountId: incident.accountId,
     },
     additionalMessage,
     incident.service.slackWebhookUrl
@@ -290,6 +294,12 @@ export function buildSlackBlocks(
           type: 'mrkdwn',
           text: `*Assignee:*\n${incident.assigneeName || 'Unassigned'}`,
         },
+        ...(incident.accountName
+          ? [{ type: 'mrkdwn', text: `*Account name:*\n${incident.accountName}` }]
+          : []),
+        ...(incident.accountId
+          ? [{ type: 'mrkdwn', text: `*Account ID:*\n${incident.accountId}` }]
+          : []),
       ],
     },
   ];
@@ -560,6 +570,8 @@ export async function sendSlackInteractiveMessage(
     urgency: incident.urgency,
     serviceName: incident.service.name,
     assigneeName: incident.assignee?.name,
+    accountName: incident.accountName,
+    accountId: incident.accountId,
   };
 
   return sendSlackMessageToChannel(

@@ -475,6 +475,8 @@ model Incident {
   visibility             IncidentVisibility @default(PUBLIC)
   priority               String? // P1, P2.. P5
   dedupKey               String? // Key for deduplication
+  accountName            String? // Source cloud account display name
+  accountId              String? // Source cloud account identifier
   serviceId              String
   assigneeId             String?
   teamId                 String? // Team assignment (mutually exclusive with assigneeId)

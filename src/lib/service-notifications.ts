@@ -95,6 +95,8 @@ export async function sendServiceNotifications(
                 urgency: incident.urgency,
                 serviceName: incident.service.name,
                 assigneeName: incident.assignee?.name,
+                accountName: incident.accountName,
+                accountId: incident.accountId,
               },
               slackEventType,
               true, // includeInteractiveButtons

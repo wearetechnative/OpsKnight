@@ -575,6 +575,8 @@ export default async function IncidentDetailPage({ params }: { params: Promise<{
               escalationStatus: incident.escalationStatus,
               currentEscalationStep: incident.currentEscalationStep,
               nextEscalationAt: incident.nextEscalationAt,
+              accountName: incident.accountName,
+              accountId: incident.accountId,
             }}
             users={users}
             watchers={incident.watchers.map(w => ({
