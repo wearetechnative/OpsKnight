@@ -93,6 +93,7 @@ export async function sendServiceNotifications(
                 title: incident.title,
                 status: incident.status,
                 urgency: incident.urgency,
+                priority: incident.priority,
                 serviceName: incident.service.name,
                 assigneeName: incident.assignee?.name,
                 accountName: incident.accountName,

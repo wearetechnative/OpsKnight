@@ -24,6 +24,7 @@ export interface BreachWarning {
   timeRemainingMs: number;
   targetMinutes: number;
   urgency: string;
+  priority?: string | null;
   status: string;
   assigneeName?: string;
   createdAt: Date;
@@ -75,6 +76,7 @@ export async function checkSLABreaches(
       title: true,
       serviceId: true,
       urgency: true,
+      priority: true,
       status: true,
       createdAt: true,
       acknowledgedAt: true,
@@ -149,6 +151,7 @@ export async function checkSLABreaches(
             timeRemainingMs: ackRemainingMs,
             targetMinutes: ackTargetMinutes,
             urgency: incident.urgency,
+            priority: incident.priority,
             status: incident.status,
             assigneeName: incident.assignee?.name,
             createdAt: incident.createdAt,
@@ -187,6 +190,7 @@ export async function checkSLABreaches(
           timeRemainingMs: resolveRemainingMs,
           targetMinutes: resolveTargetMinutes,
           urgency: incident.urgency,
+          priority: incident.priority,
           status: incident.status,
           assigneeName: incident.assignee?.name,
           createdAt: incident.createdAt,
@@ -274,6 +278,7 @@ async function notifyBreachWarning(
               title: warning.title,
               status: warning.status,
               urgency: warning.urgency,
+              priority: warning.priority,
               serviceName: warning.serviceName,
               assigneeName: warning.assigneeName,
             },
@@ -336,6 +341,7 @@ async function notifyBreachWarning(
               title: warning.title,
               status: warning.status,
               urgency: warning.urgency,
+              priority: warning.priority,
               serviceName: warning.serviceName,
               assigneeName: warning.assigneeName,
             },
@@ -360,6 +366,7 @@ async function notifyBreachWarning(
               title: warning.title,
               status: warning.status,
               urgency: warning.urgency,
+              priority: warning.priority,
               serviceName: warning.serviceName,
               assigneeName: warning.assigneeName,
             },

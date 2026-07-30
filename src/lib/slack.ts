@@ -17,6 +17,7 @@ interface IncidentDetails {
   title: string;
   status: string;
   urgency: string;
+  priority?: string | null;
   serviceName: string;
   assigneeName?: string;
   accountName?: string | null;
@@ -217,6 +218,7 @@ export async function notifySlackForIncident(
       title: incident.title,
       status: incident.status,
       urgency: incident.urgency,
+      priority: incident.priority,
       serviceName: incident.service.name,
       assigneeName: incident.assignee?.name,
       accountName: incident.accountName,
@@ -285,6 +287,10 @@ export function buildSlackBlocks(
         {
           type: 'mrkdwn',
           text: `*Status:*\n${incident.status}`,
+        },
+        {
+          type: 'mrkdwn',
+          text: `*Priority:*\n${incident.priority || 'Not set'}`,
         },
         {
           type: 'mrkdwn',
@@ -564,6 +570,7 @@ export async function sendSlackInteractiveMessage(
     title: incident.title,
     status: incident.status,
     urgency: incident.urgency,
+    priority: incident.priority,
     serviceName: incident.service.name,
     assigneeName: incident.assignee?.name,
     accountName: incident.accountName,
