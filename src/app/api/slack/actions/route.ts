@@ -242,11 +242,14 @@ export async function POST(request: NextRequest) {
                             title: updatedIncident.title,
                             status: updatedIncident.status,
                             urgency: updatedIncident.urgency,
+                            priority: updatedIncident.priority,
                             serviceName: incident.service.name,
                             assigneeName:
                                 updatedIncident.status === 'ACKNOWLEDGED' && acknowledgingUser
                                     ? acknowledgingUser.name || acknowledgingUser.email
-                                    : incident.assignee?.name
+                                    : incident.assignee?.name,
+                            accountName: updatedIncident.accountName,
+                            accountId: updatedIncident.accountId
                         },
                         eventType,
                         undefined,
@@ -302,6 +305,5 @@ export async function POST(request: NextRequest) {
         );
     }
 }
-
 
 
