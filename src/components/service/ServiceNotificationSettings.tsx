@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
 import {
   Card,
@@ -14,13 +14,6 @@ import { Button } from '@/components/ui/shadcn/button';
 import { Label } from '@/components/ui/shadcn/label';
 import { Checkbox } from '@/components/ui/shadcn/checkbox';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/shadcn/select';
-import {
   Info,
   Check,
   AlertTriangle,
@@ -30,15 +23,15 @@ import {
   Slack,
   Webhook,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 type ServiceNotificationSettingsProps = {
   serviceId: string;
   serviceNotificationChannels: string[];
-  slackChannel: string | null;
+  slackChannels: string[];
   slackWebhookUrl: string | null;
   slackIntegration: {
     id: string;
@@ -62,7 +55,7 @@ type ServiceNotificationSettingsProps = {
 export default function ServiceNotificationSettings({
   serviceId,
   serviceNotificationChannels,
-  slackChannel,
+  slackChannels: initialSlackChannels,
   slackWebhookUrl,
   slackIntegration,
   webhookIntegrations,
@@ -76,41 +69,33 @@ export default function ServiceNotificationSettings({
   const [notifyOnAck, setNotifyOnAck] = useState(serviceNotifyOnAck ?? true);
   const [notifyOnResolved, setNotifyOnResolved] = useState(serviceNotifyOnResolved ?? true);
   const [notifyOnSlaBreach, setNotifyOnSlaBreach] = useState(serviceNotifyOnSlaBreach ?? false);
-  const [selectedSlackChannel, setSelectedSlackChannel] = useState(slackChannel || '');
+  const [selectedSlackChannels, setSelectedSlackChannels] = useState<string[]>(
+    initialSlackChannels.slice(0, 2)
+  );
   const [slackChannels, setSlackChannels] = useState<
     Array<{ id: string; name: string; isMember: boolean; isPrivate: boolean }>
   >([]);
   const [loadingChannels, setLoadingChannels] = useState(false);
   const [channelsError, setChannelsError] = useState<string | null>(null);
-  const [joinState, setJoinState] = useState<{
-    status: 'idle' | 'joining' | 'success' | 'error';
-    message: string | null;
-    channelId: string | null;
-  }>({ status: 'idle', message: null, channelId: null });
-  const [testState, setTestState] = useState<{
-    testing: boolean;
-    result: 'success' | 'error' | null;
-  }>({ testing: false, result: null });
-
-  // Ref for native validation (if using hidden native select for form submission)
-  const selectRef = useRef<HTMLInputElement>(null);
-
-  // Validation effect - adapted for custom select
-  useEffect(() => {
-    if (!selectRef.current) return;
-
-    if (!selectedSlackChannel) {
-      selectRef.current.setCustomValidity('');
-      return;
-    }
-
-    const channel = slackChannels.find(ch => ch.name === selectedSlackChannel);
-    if (channel && !channel.isMember) {
-      selectRef.current.setCustomValidity('Bot must be connected to this channel before saving.');
-    } else {
-      selectRef.current.setCustomValidity('');
-    }
-  }, [selectedSlackChannel, slackChannels]);
+  const [joinStates, setJoinStates] = useState<
+    Record<
+      string,
+      {
+        status: 'idle' | 'joining' | 'success' | 'error';
+        message: string | null;
+        channelId: string | null;
+      }
+    >
+  >({});
+  const [testStates, setTestStates] = useState<
+    Record<
+      string,
+      {
+        testing: boolean;
+        result: 'success' | 'error' | null;
+      }
+    >
+  >({});
 
   const refreshChannels = () => {
     if (!slackIntegration) return;
@@ -129,20 +114,36 @@ export default function ServiceNotificationSettings({
       .finally(() => setLoadingChannels(false));
   };
 
-  const handleTestNotification = async () => {
-    const channel = slackChannels.find(ch => ch.name === selectedSlackChannel);
+  const handleTestNotification = async (channelName: string) => {
+    const channel = slackChannels.find(ch => ch.name === channelName);
     if (!channel || !channel.isMember) return;
-    setTestState({ testing: true, result: null });
+    setTestStates(previous => ({
+      ...previous,
+      [channelName]: { testing: true, result: null },
+    }));
     try {
       const res = await fetch('/api/slack/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channelId: channel.id, channelName: channel.name }),
       });
-      setTestState({ testing: false, result: res.ok ? 'success' : 'error' });
-      setTimeout(() => setTestState({ testing: false, result: null }), 3000);
+      setTestStates(previous => ({
+        ...previous,
+        [channelName]: { testing: false, result: res.ok ? 'success' : 'error' },
+      }));
+      setTimeout(
+        () =>
+          setTestStates(previous => ({
+            ...previous,
+            [channelName]: { testing: false, result: null },
+          })),
+        3000
+      );
     } catch {
-      setTestState({ testing: false, result: 'error' });
+      setTestStates(previous => ({
+        ...previous,
+        [channelName]: { testing: false, result: 'error' },
+      }));
     }
   };
 
@@ -179,46 +180,26 @@ export default function ServiceNotificationSettings({
     }
   }, [slackIntegration, serviceId]);
 
-  const handleSlackChannelChange = (channelName: string) => {
-    setSelectedSlackChannel(channelName);
-    setJoinState({ status: 'idle', message: null, channelId: null });
-
-    if (!channelName) return;
-
-    const channel = slackChannels.find(ch => ch.name === channelName);
-    if (!channel) return;
-
-    // Just show status information - do NOT auto-join
-    if (channel.isMember) {
-      setJoinState({
-        status: 'success',
-        message: `OK: Bot is connected to #${channel.name}. Ready to send notifications.`,
-        channelId: channel.id,
-      });
-    } else if (channel.isPrivate) {
-      setJoinState({
-        status: 'error',
-        message: `Note: Bot is NOT connected to #${channel.name}. For private channels, invite the bot in Slack using: /invite @OpsKnight`,
-        channelId: channel.id,
-      });
-    } else {
-      setJoinState({
-        status: 'error',
-        message: `Note: Bot is NOT connected to #${channel.name}. Click "Connect Bot" below to add the bot to this channel.`,
-        channelId: channel.id,
-      });
-    }
+  const toggleSlackChannel = (channelName: string, checked: boolean) => {
+    setSelectedSlackChannels(previous => {
+      if (!checked) return previous.filter(channel => channel !== channelName);
+      if (previous.includes(channelName) || previous.length >= 2) return previous;
+      return [...previous, channelName];
+    });
   };
 
-  const handleConnectBot = async () => {
-    const channel = slackChannels.find(ch => ch.name === selectedSlackChannel);
+  const handleConnectBot = async (channelName: string) => {
+    const channel = slackChannels.find(ch => ch.name === channelName);
     if (!channel || channel.isMember || channel.isPrivate) return;
 
-    setJoinState({
-      status: 'joining',
-      message: `Connecting bot to #${channel.name}...`,
-      channelId: channel.id,
-    });
+    setJoinStates(previous => ({
+      ...previous,
+      [channelName]: {
+        status: 'joining',
+        message: `Connecting bot to #${channel.name}...`,
+        channelId: channel.id,
+      },
+    }));
 
     try {
       const response = await fetch('/api/slack/channels', {
@@ -239,30 +220,39 @@ export default function ServiceNotificationSettings({
                 ? 'Bot must be invited for private channels.'
                 : 'Failed to add bot to channel.';
 
-        setJoinState({
-          status: 'error',
-          message: friendlyMessage,
-          channelId: channel.id,
-        });
+        setJoinStates(previous => ({
+          ...previous,
+          [channelName]: {
+            status: 'error',
+            message: friendlyMessage,
+            channelId: channel.id,
+          },
+        }));
         return;
       }
 
       setSlackChannels(prev =>
         prev.map(ch => (ch.id === channel.id ? { ...ch, isMember: true } : ch))
       );
-      setJoinState({
-        status: 'success',
-        message: `OK: Bot connected to #${channel.name}. Ready to send notifications.`,
-        channelId: channel.id,
-      });
+      setJoinStates(previous => ({
+        ...previous,
+        [channelName]: {
+          status: 'success',
+          message: `OK: Bot connected to #${channel.name}. Ready to send notifications.`,
+          channelId: channel.id,
+        },
+      }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to join Slack channel', { error: errorMessage });
-      setJoinState({
-        status: 'error',
-        message: 'Failed to add bot to channel. Try again.',
-        channelId: channel.id,
-      });
+      setJoinStates(previous => ({
+        ...previous,
+        [channelName]: {
+          status: 'error',
+          message: 'Failed to add bot to channel. Try again.',
+          channelId: channel.id,
+        },
+      }));
     }
   };
 
@@ -270,18 +260,23 @@ export default function ServiceNotificationSettings({
     (count, channel) => count + (channel.isMember ? 1 : 0),
     0
   );
+  const allSelectedSlackChannelsConnected = selectedSlackChannels.every(channelName =>
+    slackChannels.some(channel => channel.name === channelName && channel.isMember)
+  );
 
   return (
     <div className="space-y-6">
-      {/* Hidden input for validation */}
+      {/* Hidden input provides native validation for the channel selection. */}
       <input
-        ref={selectRef}
         style={{ opacity: 0, height: 1, position: 'absolute' }}
         tabIndex={-1}
         required={channels.includes('SLACK')}
-        value={selectedSlackChannel || ''}
+        value={
+          selectedSlackChannels.length > 0 && allSelectedSlackChannelsConnected
+            ? selectedSlackChannels.join(',')
+            : ''
+        }
         readOnly
-        // Adding onChange to avoid React warning about uncontrolled component since we set value
         onChange={() => {}}
       />
 
@@ -464,11 +459,31 @@ export default function ServiceNotificationSettings({
               </Alert>
             )}
 
-            {/* Slack Channel Selector */}
+            {/* Slack Channel Selectors */}
             {slackIntegration && (
               <div className="space-y-3">
-                <Label>Select Channel for Notifications</Label>
-                <input type="hidden" name="slackChannel" value={selectedSlackChannel} />
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <Label>Select up to two channels</Label>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Alerts and their acknowledgement/resolution updates are sent to both channels.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={refreshChannels}
+                    disabled={loadingChannels}
+                    title="Refresh channel list"
+                  >
+                    <RefreshCw className={cn('h-4 w-4', loadingChannels && 'animate-spin')} />
+                  </Button>
+                </div>
+
+                {selectedSlackChannels.map(channel => (
+                  <input key={channel} type="hidden" name="slackChannels" value={channel} />
+                ))}
 
                 {loadingChannels ? (
                   <div className="flex items-center gap-2 text-sm text-slate-500 p-2">
@@ -485,137 +500,106 @@ export default function ServiceNotificationSettings({
                     No channels found. Check Slack scopes and ensure the workspace is connected.
                   </div>
                 ) : (
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <Select
-                        value={selectedSlackChannel}
-                        onValueChange={handleSlackChannelChange}
-                        name="slackChannel"
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Choose a channel..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {slackChannels.map(ch => (
-                            <SelectItem key={ch.id} value={ch.name}>
-                              <span className="flex items-center gap-2">
-                                <span className="font-medium">#{ch.name}</span>
-                                {ch.isPrivate && (
-                                  <span className="text-xs opacity-70">(private)</span>
-                                )}
-                                {ch.isMember && <Check className="h-3 w-3 text-emerald-500" />}
+                  <div className="space-y-2 max-h-80 overflow-y-auto rounded-md border p-2">
+                    {slackChannels.map(channel => {
+                      const selected = selectedSlackChannels.includes(channel.name);
+                      const selectionDisabled = !selected && selectedSlackChannels.length >= 2;
+                      const joinState = joinStates[channel.name];
+                      const testState = testStates[channel.name];
+
+                      return (
+                        <div key={channel.id} className="rounded-md border bg-white p-3">
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              id={`slack-channel-${channel.id}`}
+                              checked={selected}
+                              disabled={selectionDisabled}
+                              onCheckedChange={checked =>
+                                toggleSlackChannel(channel.name, checked === true)
+                              }
+                            />
+                            <Label
+                              htmlFor={`slack-channel-${channel.id}`}
+                              className="flex-1 cursor-pointer font-medium"
+                            >
+                              #{channel.name}
+                              {channel.isPrivate && (
+                                <span className="ml-2 text-xs font-normal text-slate-500">
+                                  private
+                                </span>
+                              )}
+                            </Label>
+                            {channel.isMember ? (
+                              <span className="flex items-center gap-1 text-xs text-emerald-600">
+                                <Check className="h-3 w-3" /> Connected
                               </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={refreshChannels}
-                      disabled={loadingChannels}
-                      title="Refresh channel list"
-                    >
-                      <RefreshCw className={cn('h-4 w-4', loadingChannels && 'animate-spin')} />
-                    </Button>
+                            ) : (
+                              <span className="text-xs text-amber-600">Bot not connected</span>
+                            )}
+                          </div>
+
+                          {selected && (
+                            <div className="mt-3 ml-7 flex flex-wrap items-center gap-2">
+                              {!channel.isMember && !channel.isPrivate && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => void handleConnectBot(channel.name)}
+                                  disabled={joinState?.status === 'joining'}
+                                >
+                                  {joinState?.status === 'joining' && (
+                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                  )}
+                                  Connect Bot
+                                </Button>
+                              )}
+                              {!channel.isMember && channel.isPrivate && (
+                                <span className="text-xs text-amber-700">
+                                  Invite the bot in Slack with /invite @OpsKnight.
+                                </span>
+                              )}
+                              {channel.isMember && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => void handleTestNotification(channel.name)}
+                                  disabled={testState?.testing}
+                                >
+                                  {testState?.testing ? (
+                                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Send className="mr-2 h-3 w-3" />
+                                  )}
+                                  {testState?.result === 'success'
+                                    ? 'Test Sent!'
+                                    : testState?.result === 'error'
+                                      ? 'Test Failed'
+                                      : 'Send Test'}
+                                </Button>
+                              )}
+                              {joinState?.message && (
+                                <span
+                                  className={cn(
+                                    'text-xs',
+                                    joinState.status === 'success'
+                                      ? 'text-emerald-600'
+                                      : 'text-red-600'
+                                  )}
+                                >
+                                  {joinState.message}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-
-                {/* Connection Status & Actions */}
-                {joinState.status !== 'idle' && joinState.message && (
-                  <Alert
-                    className={cn(
-                      'mt-3 border',
-                      joinState.status === 'success'
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                        : joinState.status === 'error'
-                          ? 'bg-red-50 border-red-200 text-red-800'
-                          : 'bg-blue-50 border-blue-200 text-blue-800'
-                    )}
-                  >
-                    <div className="flex items-start gap-2">
-                      {joinState.status === 'success' ? (
-                        <Check className="h-4 w-4 mt-0.5" />
-                      ) : joinState.status === 'error' ? (
-                        <AlertTriangle className="h-4 w-4 mt-0.5" />
-                      ) : (
-                        <Loader2 className="h-4 w-4 animate-spin mt-0.5" />
-                      )}
-                      <div className="text-sm">{joinState.message}</div>
-                    </div>
-                  </Alert>
-                )}
-
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {/* Connect Bot Button */}
-                  {selectedSlackChannel &&
-                    (() => {
-                      const channel = slackChannels.find(ch => ch.name === selectedSlackChannel);
-                      if (channel && !channel.isMember && !channel.isPrivate) {
-                        return (
-                          <Button
-                            type="button"
-                            onClick={() => void handleConnectBot()}
-                            disabled={joinState.status === 'joining'}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            {joinState.status === 'joining' && (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            )}
-                            Connect Bot
-                          </Button>
-                        );
-                      }
-                      return null;
-                    })()}
-
-                  {/* Test Button */}
-                  {selectedSlackChannel &&
-                    (() => {
-                      const channel = slackChannels.find(ch => ch.name === selectedSlackChannel);
-                      if (channel?.isMember) {
-                        return (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => void handleTestNotification()}
-                            disabled={testState.testing}
-                            className={cn(
-                              testState.result === 'success' &&
-                                'border-emerald-500 text-emerald-600 bg-emerald-50',
-                              testState.result === 'error' &&
-                                'border-red-500 text-red-600 bg-red-50'
-                            )}
-                          >
-                            {testState.testing ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Sending...
-                              </>
-                            ) : testState.result === 'success' ? (
-                              <>
-                                <Check className="mr-2 h-4 w-4" />
-                                Test Sent!
-                              </>
-                            ) : testState.result === 'error' ? (
-                              <>
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Failed
-                              </>
-                            ) : (
-                              <>
-                                <Send className="mr-2 h-4 w-4" />
-                                Send Test
-                              </>
-                            )}
-                          </Button>
-                        );
-                      }
-                      return null;
-                    })()}
-                </div>
+                <p className="text-xs text-slate-500">
+                  {selectedSlackChannels.length}/2 channels selected.
+                </p>
               </div>
             )}
 

@@ -87,7 +87,13 @@ export async function updateService(serviceId: string, formData: FormData) {
   const region = formData.get('region') as string;
   const slaTier = formData.get('slaTier') as string;
   const slackWebhookUrl = formData.get('slackWebhookUrl') as string;
-  const slackChannel = formData.get('slackChannel') as string;
+  const slackChannels = Array.from(
+    new Set(
+      formData
+        .getAll('slackChannels')
+        .filter((channel): channel is string => typeof channel === 'string' && channel.length > 0)
+    )
+  ).slice(0, 2);
   const teamId = formData.get('teamId') as string;
   const escalationPolicyId = formData.get('escalationPolicyId') as string;
 
@@ -116,7 +122,10 @@ export async function updateService(serviceId: string, formData: FormData) {
         region: region || null,
         slaTier: slaTier || null,
         slackWebhookUrl: slackWebhookUrl || null,
-        slackChannel: slackChannel || null,
+        // Keep the legacy field populated for older notification paths and
+        // existing integrations while the array is the source of truth.
+        slackChannel: slackChannels[0] || null,
+        slackChannels,
         teamId: teamId || null,
         escalationPolicyId: escalationPolicyId || null,
         serviceNotificationChannels:

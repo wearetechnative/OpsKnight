@@ -317,7 +317,13 @@ export default async function ServiceSettingsPage({
               serviceNotifyOnAck={service.serviceNotifyOnAck}
               serviceNotifyOnResolved={service.serviceNotifyOnResolved}
               serviceNotifyOnSlaBreach={service.serviceNotifyOnSlaBreach}
-              slackChannel={service.slackChannel || null}
+              slackChannels={
+                service.slackChannels.length > 0
+                  ? service.slackChannels
+                  : service.slackChannel
+                    ? [service.slackChannel]
+                    : []
+              }
               slackWebhookUrl={service.slackWebhookUrl}
               slackIntegration={globalSlackIntegration}
               webhookIntegrations={webhookIntegrations}

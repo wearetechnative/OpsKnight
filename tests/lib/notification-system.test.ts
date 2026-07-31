@@ -48,6 +48,10 @@ vi.mock('@/lib/prisma', () => ({
       findMany: vi.fn(),
     },
     slackIntegration: { findFirst: vi.fn() },
+    incidentSlackMessage: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
     incidentEvent: { create: vi.fn() },
     $transaction: vi.fn(arg => {
       if (Array.isArray(arg)) return Promise.all(arg);
@@ -97,6 +101,59 @@ describe('Notification System Tests', () => {
 
       expect(result.success).toBe(true);
       expect(slackSpy).toHaveBeenCalled();
+    });
+
+    it('should send incident status changes to both configured Slack channels', async () => {
+      const incidentId = 'inc-two-channels';
+      const slackSpy = vi
+        .spyOn(slack, 'sendSlackMessageToChannel')
+        .mockResolvedValue({ success: true });
+
+      vi.mocked(prisma.incident.findUnique).mockResolvedValue({
+        id: incidentId,
+        title: 'Customer incident',
+        serviceId: 'svc-1',
+        status: 'ACKNOWLEDGED',
+        urgency: 'HIGH',
+        priority: 'P1',
+        accountName: null,
+        accountId: null,
+        assignee: { name: 'On-call engineer' },
+        service: {
+          id: 'svc-1',
+          name: 'Customer A',
+          serviceNotificationChannels: ['SLACK'],
+          slackChannels: ['customer-alerts', 'operations-alerts'],
+          slackChannel: 'customer-alerts',
+          slackWebhookUrl: null,
+          webhookUrl: null,
+          webhookIntegrations: [],
+          serviceNotifyOnTriggered: true,
+          serviceNotifyOnAck: true,
+          serviceNotifyOnResolved: true,
+        },
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      const result = await sendServiceNotifications(incidentId, 'acknowledged');
+
+      expect(result).toEqual({ success: true, errors: undefined });
+      expect(slackSpy).toHaveBeenCalledTimes(2);
+      expect(slackSpy).toHaveBeenCalledWith(
+        'customer-alerts',
+        expect.objectContaining({ id: incidentId }),
+        'acknowledged',
+        true,
+        'svc-1'
+      );
+      expect(slackSpy).toHaveBeenCalledWith(
+        'operations-alerts',
+        expect.objectContaining({ id: incidentId }),
+        'acknowledged',
+        true,
+        'svc-1'
+      );
+
+      slackSpy.mockRestore();
     });
   });
 

@@ -85,27 +85,44 @@ export async function sendServiceNotifications(
         });
       } else {
         try {
-          if (incident.service.slackChannel) {
-            const slackResult = await sendSlackMessageToChannel(
-              incident.service.slackChannel,
-              {
-                id: incident.id,
-                title: incident.title,
-                status: incident.status,
-                urgency: incident.urgency,
-                priority: incident.priority,
-                serviceName: incident.service.name,
-                assigneeName: incident.assignee?.name,
-                accountName: incident.accountName,
-                accountId: incident.accountId,
-              },
-              slackEventType,
-              true, // includeInteractiveButtons
-              incident.serviceId // Pass serviceId to get correct token
-            );
+          const configuredSlackChannels = Array.from(
+            new Set(
+              incident.service.slackChannels?.length > 0
+                ? incident.service.slackChannels
+                : incident.service.slackChannel
+                  ? [incident.service.slackChannel]
+                  : []
+            )
+          ).slice(0, 2);
 
-            if (!slackResult.success) {
-              errors.push(`Slack channel notification failed: ${slackResult.error}`);
+          const incidentDetails = {
+            id: incident.id,
+            title: incident.title,
+            status: incident.status,
+            urgency: incident.urgency,
+            priority: incident.priority,
+            serviceName: incident.service.name,
+            assigneeName: incident.assignee?.name,
+            accountName: incident.accountName,
+            accountId: incident.accountId,
+          };
+
+          const slackResults = await Promise.all(
+            configuredSlackChannels.map(async channel => ({
+              channel,
+              result: await sendSlackMessageToChannel(
+                channel,
+                incidentDetails,
+                slackEventType,
+                true, // includeInteractiveButtons
+                incident.serviceId // Pass serviceId to get correct token
+              ),
+            }))
+          );
+
+          for (const { channel, result } of slackResults) {
+            if (!result.success) {
+              errors.push(`Slack notification to #${channel} failed: ${result.error}`);
             }
           }
 

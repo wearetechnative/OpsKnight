@@ -436,17 +436,38 @@ export async function sendSlackMessageToChannel(
 
   try {
     // For acknowledged/resolved incidents, update the original Slack message
-    // when we have a stored Slack channel + message timestamp.
+    // for this configured channel when we have a stored message reference.
     if (eventType !== 'triggered') {
-      const existingIncident = await prisma.incident.findUnique({
-        where: { id: incident.id },
-        select: {
-          slackChannelId: true,
-          slackMessageTs: true,
+      const channelMessage = await prisma.incidentSlackMessage.findUnique({
+        where: {
+          incidentId_configuredChannel: {
+            incidentId: incident.id,
+            configuredChannel: channel,
+          },
         },
       });
 
-      if (existingIncident?.slackChannelId && existingIncident?.slackMessageTs) {
+      // Backward compatibility for incidents created before per-channel message
+      // references were introduced. Only the legacy configured channel may use it.
+      const legacyIncident = !channelMessage
+        ? await prisma.incident.findUnique({
+            where: { id: incident.id },
+            select: {
+              slackChannelId: true,
+              slackMessageTs: true,
+              service: { select: { slackChannel: true } },
+            },
+          })
+        : null;
+      const legacyMatchesChannel = legacyIncident?.service.slackChannel === channel;
+      const slackChannelId =
+        channelMessage?.slackChannelId ||
+        (legacyMatchesChannel ? legacyIncident?.slackChannelId : null);
+      const slackMessageTs =
+        channelMessage?.slackMessageTs ||
+        (legacyMatchesChannel ? legacyIncident?.slackMessageTs : null);
+
+      if (slackChannelId && slackMessageTs) {
         const updateResponse = await retryFetch(
           'https://slack.com/api/chat.update',
           {
@@ -456,8 +477,8 @@ export async function sendSlackMessageToChannel(
               Authorization: `Bearer ${botToken}`,
             },
             body: JSON.stringify({
-              channel: existingIncident.slackChannelId,
-              ts: existingIncident.slackMessageTs,
+              channel: slackChannelId,
+              ts: slackMessageTs,
               text: `Incident ${eventType}: ${incident.title}`,
               blocks,
             }),
@@ -480,7 +501,7 @@ export async function sendSlackMessageToChannel(
         }
 
         logger.info(
-          `[Slack] Message updated in channel ${existingIncident.slackChannelId}: ${eventType} - ${incident.title}`
+          `[Slack] Message updated in channel ${slackChannelId}: ${eventType} - ${incident.title}`
         );
         return { success: true };
       }
@@ -521,16 +542,37 @@ export async function sendSlackMessageToChannel(
       return { success: false, error: errorMsg };
     }
 
-    // Store the original Slack message reference so later ACK/RESOLVE
-    // events can update the same message instead of posting a new one.
+    // Store a message reference for each configured Slack channel so later
+    // ACK/RESOLVE events update both original messages.
     if (eventType === 'triggered' && responseData.channel && responseData.ts) {
-      await prisma.incident.update({
-        where: { id: incident.id },
-        data: {
-          slackChannelId: responseData.channel,
-          slackMessageTs: responseData.ts,
-        },
-      });
+      await prisma.$transaction([
+        prisma.incidentSlackMessage.upsert({
+          where: {
+            incidentId_configuredChannel: {
+              incidentId: incident.id,
+              configuredChannel: channel,
+            },
+          },
+          create: {
+            incidentId: incident.id,
+            configuredChannel: channel,
+            slackChannelId: responseData.channel,
+            slackMessageTs: responseData.ts,
+          },
+          update: {
+            slackChannelId: responseData.channel,
+            slackMessageTs: responseData.ts,
+          },
+        }),
+        prisma.incident.updateMany({
+          where: { id: incident.id, slackChannelId: null },
+          data: {
+            // Retain the first message reference for older consumers.
+            slackChannelId: responseData.channel,
+            slackMessageTs: responseData.ts,
+          },
+        }),
+      ]);
     }
 
     logger.info(

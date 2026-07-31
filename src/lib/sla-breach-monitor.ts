@@ -30,6 +30,7 @@ export interface BreachWarning {
   createdAt: Date;
   slackWebhookUrl?: string | null;
   slackChannel?: string | null;
+  slackChannels?: string[];
   serviceNotificationChannels?: string[];
   webhookIntegrations?: WebhookIntegration[];
 }
@@ -88,6 +89,7 @@ export async function checkSLABreaches(
           targetResolveMinutes: true,
           slackWebhookUrl: true,
           slackChannel: true,
+          slackChannels: true,
           serviceNotificationChannels: true,
           serviceNotifyOnSlaBreach: true,
           webhookIntegrations: {
@@ -157,6 +159,7 @@ export async function checkSLABreaches(
             createdAt: incident.createdAt,
             slackWebhookUrl: incident.service.slackWebhookUrl,
             slackChannel: incident.service.slackChannel,
+            slackChannels: incident.service.slackChannels,
             serviceNotificationChannels: incident.service.serviceNotificationChannels,
             webhookIntegrations: incident.service.webhookIntegrations,
           });
@@ -196,6 +199,7 @@ export async function checkSLABreaches(
           createdAt: incident.createdAt,
           slackWebhookUrl: incident.service.slackWebhookUrl,
           slackChannel: incident.service.slackChannel,
+          slackChannels: incident.service.slackChannels,
           serviceNotificationChannels: incident.service.serviceNotificationChannels,
           webhookIntegrations: incident.service.webhookIntegrations,
         });
@@ -268,11 +272,21 @@ async function notifyBreachWarning(
     if (hasSlackEnabled) {
       let sent = false;
 
-      // 1. Try OAuth Channel First (Preferred)
-      if (warning.slackChannel) {
+      // 1. Try every configured OAuth channel first (preferred).
+      const configuredSlackChannels = Array.from(
+        new Set(
+          warning.slackChannels && warning.slackChannels.length > 0
+            ? warning.slackChannels
+            : warning.slackChannel
+              ? [warning.slackChannel]
+              : []
+        )
+      ).slice(0, 2);
+
+      for (const slackChannel of configuredSlackChannels) {
         try {
           const result = await sendSlackMessageToChannel(
-            warning.slackChannel,
+            slackChannel,
             {
               id: warning.incidentId,
               title: warning.title,
@@ -320,14 +334,19 @@ async function notifyBreachWarning(
             sent = true;
             logger.info('[SLA Breach Monitor] Slack notification sent via OAuth channel', {
               warning,
+              slackChannel,
             });
           } else {
-            logger.warn('[SLA Breach Monitor] OAuth Slack failed, trying webhook fallback', {
+            logger.warn('[SLA Breach Monitor] OAuth Slack channel failed', {
               error: result.error,
+              slackChannel,
             });
           }
         } catch (err) {
-          logger.warn('[SLA Breach Monitor] OAuth Slack error, trying webhook fallback', { err });
+          logger.warn('[SLA Breach Monitor] OAuth Slack channel error', {
+            err,
+            slackChannel,
+          });
         }
       }
 
@@ -356,7 +375,7 @@ async function notifyBreachWarning(
         }
       }
 
-      if (!sent && !warning.slackChannel && !warning.slackWebhookUrl) {
+      if (!sent && configuredSlackChannels.length === 0 && !warning.slackWebhookUrl) {
         // Last resort: Global webhook (sendSlackNotification defaults to global if no url passed)
         try {
           await sendSlackNotification(

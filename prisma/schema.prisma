@@ -284,6 +284,7 @@ model Service {
   escalationPolicyId          String?
   slackWebhookUrl             String? // Per-service Slack Webhook URL (only notification config at service level)
   slackChannel                String? // Slack channel name (e.g., #incidents)
+  slackChannels               String[]              @default([]) // Up to two Slack channel names for customer notifications
   slackWorkspaceId            String? // Slack workspace ID for future multi-workspace support
   slackIntegrationId          String?               @unique // Reference to SlackIntegration (OAuth-based)
   webhookUrl                  String? // Per-service generic webhook URL
@@ -507,6 +508,7 @@ model Incident {
   tags                    IncidentTag[]
   actionItemRecords       ActionItem[]
   externalIssueLinks      ExternalIssueLink[]
+  slackMessages           IncidentSlackMessage[]
 
   @@index([dedupKey]) // Index for fast deduplication lookups
   @@index([serviceId, dedupKey, status]) // For service-scoped deduplication checks
@@ -531,6 +533,21 @@ model Incident {
   @@index([createdAt, acknowledgedAt], name: "idx_incident_mtta_calc") // For MTTA range calculations
   @@index([createdAt, resolvedAt, status], name: "idx_incident_mttr_calc") // For MTTR with status filter
   @@index([assigneeId, createdAt, status], name: "idx_incident_assignee_load") // For assignee workload queries
+}
+
+model IncidentSlackMessage {
+  id                String   @id @default(cuid())
+  incidentId        String
+  configuredChannel String
+  slackChannelId    String
+  slackMessageTs    String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, configuredChannel])
+  @@index([incidentId])
 }
 
 model Tag {

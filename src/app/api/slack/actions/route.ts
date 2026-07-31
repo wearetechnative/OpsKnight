@@ -6,19 +6,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { getSlackBotToken } from '@/lib/slack';
 import crypto from 'crypto';
-import { buildSlackBlocks, getSlackBotToken } from '@/lib/slack';
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
 
 /**
  * Verify Slack request signature
  */
-function verifySlackSignature(
-    body: string,
-    signature: string,
-    timestamp: string
-): boolean {
+function verifySlackSignature(body: string, signature: string, timestamp: string): boolean {
     if (!SLACK_SIGNING_SECRET) {
         logger.warn('[Slack] No signing secret configured, skipping verification');
         return true; // Allow in development if no secret configured
@@ -34,16 +30,12 @@ function verifySlackSignature(
 
     // Create signature
     const sigBaseString = `v0:${timestamp}:${body}`;
-    const computedSignature = 'v0=' + crypto
-        .createHmac('sha256', SLACK_SIGNING_SECRET)
-        .update(sigBaseString)
-        .digest('hex');
+    const computedSignature =
+        'v0=' +
+        crypto.createHmac('sha256', SLACK_SIGNING_SECRET).update(sigBaseString).digest('hex');
 
     // Timing-safe comparison
-    return crypto.timingSafeEqual(
-        Buffer.from(computedSignature),
-        Buffer.from(signature)
-    );
+    return crypto.timingSafeEqual(Buffer.from(computedSignature), Buffer.from(signature));
 }
 
 export async function POST(request: NextRequest) {
@@ -55,10 +47,7 @@ export async function POST(request: NextRequest) {
         // Verify signature
         if (!verifySlackSignature(body, signature, timestamp)) {
             logger.warn('[Slack] Invalid signature', { signature, timestamp });
-            return NextResponse.json(
-                { error: 'Invalid signature' },
-                { status: 401 }
-            );
+            return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
         }
 
         // Slack interactive actions are sent as
@@ -73,10 +62,7 @@ export async function POST(request: NextRequest) {
             const payloadString = form.get('payload');
 
             if (!payloadString) {
-                return NextResponse.json(
-                    { error: 'Missing Slack payload' },
-                    { status: 400 }
-                );
+                return NextResponse.json({ error: 'Missing Slack payload' }, { status: 400 });
             }
 
             payload = JSON.parse(payloadString);
@@ -100,10 +86,7 @@ export async function POST(request: NextRequest) {
             const { action: actionType, incidentId } = actionValue;
 
             if (!incidentId || !actionType) {
-                return NextResponse.json(
-                    { error: 'Invalid action data' },
-                    { status: 400 }
-                );
+                return NextResponse.json({ error: 'Invalid action data' }, { status: 400 });
             }
 
             // Get incident
@@ -116,10 +99,7 @@ export async function POST(request: NextRequest) {
             });
 
             if (!incident) {
-                return NextResponse.json(
-                    { error: 'Incident not found' },
-                    { status: 404 }
-                );
+                return NextResponse.json({ error: 'Incident not found' }, { status: 404 });
             }
 
             // Update incident based on action
@@ -165,7 +145,8 @@ export async function POST(request: NextRequest) {
                             });
                         }
                     }
-                } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+                } catch (error: any) {
+                    // eslint-disable-line @typescript-eslint/no-explicit-any
                     logger.warn('[Slack] Failed to resolve acknowledging Slack user', {
                         slackUserId: payload.user?.id,
                         error: error.message
@@ -203,10 +184,7 @@ export async function POST(request: NextRequest) {
                     });
                 }
             } else {
-                return NextResponse.json(
-                    { error: 'Unknown action' },
-                    { status: 400 }
-                );
+                return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
             }
 
             // Update incident
@@ -223,67 +201,30 @@ export async function POST(request: NextRequest) {
                 }
             });
 
-            // Update the original Slack message so its state matches OpsKnight.
-            const channelId = payload.channel?.id;
-            const messageTs = payload.message?.ts;
-
-            if (channelId && messageTs) {
-                const botToken = await getSlackBotToken(incident.serviceId);
-
-                if (botToken) {
-                    const eventType =
-                        updatedIncident.status === 'ACKNOWLEDGED'
-                            ? 'acknowledged'
-                            : 'resolved';
-
-                    const blocks = buildSlackBlocks(
-                        {
-                            id: updatedIncident.id,
-                            title: updatedIncident.title,
-                            status: updatedIncident.status,
-                            urgency: updatedIncident.urgency,
-                            priority: updatedIncident.priority,
-                            serviceName: incident.service.name,
-                            assigneeName:
-                                updatedIncident.status === 'ACKNOWLEDGED' && acknowledgingUser
-                                    ? acknowledgingUser.name || acknowledgingUser.email
-                                    : incident.assignee?.name,
-                            accountName: updatedIncident.accountName,
-                            accountId: updatedIncident.accountId
-                        },
+            // Fan the status update out through the customer notification
+            // system. It updates the original incident message in every
+            // configured Slack channel, including the channel clicked here.
+            const eventType =
+                updatedIncident.status === 'ACKNOWLEDGED' ? 'acknowledged' : 'resolved';
+            try {
+                const { sendServiceNotifications } = await import('@/lib/service-notifications');
+                const notificationResult = await sendServiceNotifications(incidentId, eventType);
+                if (!notificationResult.success) {
+                    logger.warn('[Slack] Some customer channel updates failed', {
+                        incidentId,
                         eventType,
-                        undefined,
-                        true
-                    );
-
-                    const slackResponse = await fetch(
-                        'https://slack.com/api/chat.update',
-                        {
-                            method: 'POST',
-                            headers: {
-                                Authorization: `Bearer ${botToken}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                channel: channelId,
-                                ts: messageTs,
-                                text: `${responseMessage}: ${updatedIncident.title}`,
-                                blocks
-                            })
-                        }
-                    );
-
-                    const slackData = await slackResponse.json();
-
-                    if (!slackData.ok) {
-                        logger.warn('[Slack] Failed to update incident message', {
-                            error: slackData.error,
-                            incidentId,
-                            channelId,
-                            messageTs
-                        });
-                    }
+                        errors: notificationResult.errors
+                    });
                 }
+            } catch (notificationError) {
+                logger.error('[Slack] Customer channel update failed', {
+                    incidentId,
+                    eventType,
+                    error:
+                        notificationError instanceof Error
+                            ? notificationError.message
+                            : String(notificationError)
+                });
             }
 
             // Send confirmation back to Slack
@@ -294,16 +235,12 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ ok: true });
-    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        // eslint-disable-line @typescript-eslint/no-explicit-any
         logger.error('[Slack] Actions API error', {
             error: error.message,
             stack: error.stack
         });
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
-
-
