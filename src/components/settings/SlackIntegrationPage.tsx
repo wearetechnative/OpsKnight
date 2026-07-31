@@ -60,6 +60,8 @@ interface SlackIntegration {
   createdAt: Date;
   updatedAt: Date;
   scopes: string[];
+  productionChannel?: string | null;
+  nonProductionChannel?: string | null;
   installer: {
     id: string;
     name: string;
@@ -95,6 +97,11 @@ export default function SlackIntegrationPage({
     success: boolean;
     message: string;
   } | null>(null);
+  const [productionChannel, setProductionChannel] = useState(integration?.productionChannel ?? '');
+  const [nonProductionChannel, setNonProductionChannel] = useState(
+    integration?.nonProductionChannel ?? ''
+  );
+  const [savingRouting, setSavingRouting] = useState(false);
 
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
@@ -371,6 +378,28 @@ export default function SlackIntegrationPage({
     toast.success(`Connected to ${successCount} channels`);
   };
 
+  const handleSaveRouting = async () => {
+    if (!integration || !isAdmin) return;
+    setSavingRouting(true);
+    try {
+      const response = await fetch('/api/slack/routing', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productionChannel, nonProductionChannel }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save Slack routing');
+      toast.success('Slack environment routing saved');
+      router.refresh();
+    } catch (error) {
+      toast.error('Unable to save routing', {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setSavingRouting(false);
+    }
+  };
+
   const channelSummary = useMemo(() => {
     const connected = channels.filter(ch => ch.isMember).length;
     const invite = channels.filter(ch => !ch.isMember && ch.isPrivate).length;
@@ -629,6 +658,77 @@ export default function SlackIntegrationPage({
                     window.location.href = '/api/slack/oauth';
                   }}
                 />
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Environment routing</CardTitle>
+                  <CardDescription>
+                    Customer channels always receive their alerts. These shared channels receive a
+                    second copy based on the alert environment. Only production alerts start on-call
+                    escalation.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="space-y-2 text-sm font-medium">
+                      Production alerts channel
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={productionChannel}
+                        onChange={event => setProductionChannel(event.target.value)}
+                        disabled={!isAdmin}
+                      >
+                        <option value="">Not configured</option>
+                        {channels
+                          .filter(channel => channel.isMember)
+                          .map(channel => (
+                            <option key={channel.id} value={channel.name}>
+                              #{channel.name}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                    <label className="space-y-2 text-sm font-medium">
+                      Non-production alerts channel
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={nonProductionChannel}
+                        onChange={event => setNonProductionChannel(event.target.value)}
+                        disabled={!isAdmin}
+                      >
+                        <option value="">Not configured</option>
+                        {channels
+                          .filter(channel => channel.isMember)
+                          .map(channel => (
+                            <option key={channel.id} value={channel.name}>
+                              #{channel.name}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-xs text-muted-foreground">
+                      Missing or unknown environment tags are routed as non-production and do not
+                      page on-call.
+                    </p>
+                    {isAdmin && (
+                      <Button
+                        type="button"
+                        onClick={() => void handleSaveRouting()}
+                        disabled={savingRouting || productionChannel === nonProductionChannel}
+                      >
+                        {savingRouting ? 'Saving...' : 'Save routing'}
+                      </Button>
+                    )}
+                  </div>
+                  {productionChannel && productionChannel === nonProductionChannel && (
+                    <p className="text-sm text-destructive">
+                      Production and non-production must use different channels.
+                    </p>
+                  )}
+                </CardContent>
               </Card>
 
               {/* Available Channels Section */}

@@ -428,16 +428,18 @@ model OidcConfig {
 
 // Slack OAuth Integration
 model SlackIntegration {
-  id            String   @id @default(cuid())
-  workspaceId   String // Slack workspace/team ID
-  workspaceName String? // Slack workspace name
-  botToken      String // Encrypted bot token (xoxb-...)
-  signingSecret String? // Encrypted signing secret
-  installedBy   String // User ID who installed the integration
-  scopes        String[] // OAuth scopes granted
-  enabled       Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  workspaceId          String // Slack workspace/team ID
+  workspaceName        String? // Slack workspace name
+  botToken             String // Encrypted bot token (xoxb-...)
+  signingSecret        String? // Encrypted signing secret
+  installedBy          String // User ID who installed the integration
+  scopes               String[] // OAuth scopes granted
+  enabled              Boolean  @default(true)
+  productionChannel    String? // Shared channel for production incidents
+  nonProductionChannel String? // Shared channel for non-production/unknown incidents
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   service   Service? @relation("ServiceSlackIntegration")
   installer User     @relation(fields: [installedBy], references: [id])
@@ -478,6 +480,7 @@ model Incident {
   dedupKey               String? // Key for deduplication
   accountName            String? // Source cloud account display name
   accountId              String? // Source cloud account identifier
+  environment            String? // PRODUCTION or NON_PRODUCTION for routed source alerts
   serviceId              String
   assigneeId             String?
   teamId                 String? // Team assignment (mutually exclusive with assigneeId)

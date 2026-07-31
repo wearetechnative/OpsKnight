@@ -209,6 +209,20 @@ export async function executeEscalation(incidentId: string, stepIndex?: number) 
     },
   });
 
+  if (incident?.environment === 'NON_PRODUCTION') {
+    await prisma.incident.update({
+      where: { id: incidentId },
+      data: {
+        escalationStatus: null,
+        nextEscalationAt: null,
+        currentEscalationStep: null,
+        escalationProcessingAt: null,
+      },
+    });
+    logger.info('Escalation skipped for non-production incident', { incidentId });
+    return { escalated: false, reason: 'Non-production incident' };
+  }
+
   if (!incident || !incident.service.policy?.steps?.length) {
     // Clear escalation status if no policy
     await prisma.incident.update({

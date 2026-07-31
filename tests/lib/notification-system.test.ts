@@ -103,7 +103,7 @@ describe('Notification System Tests', () => {
       expect(slackSpy).toHaveBeenCalled();
     });
 
-    it('should send incident status changes to both configured Slack channels', async () => {
+    it('should send production status changes to customer and shared production channels', async () => {
       const incidentId = 'inc-two-channels';
       const slackSpy = vi
         .spyOn(slack, 'sendSlackMessageToChannel')
@@ -118,6 +118,7 @@ describe('Notification System Tests', () => {
         priority: 'P1',
         accountName: null,
         accountId: null,
+        environment: 'PRODUCTION',
         assignee: { name: 'On-call engineer' },
         service: {
           id: 'svc-1',
@@ -133,11 +134,15 @@ describe('Notification System Tests', () => {
           serviceNotifyOnResolved: true,
         },
       } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+      vi.mocked(prisma.slackIntegration.findFirst).mockResolvedValue({
+        productionChannel: 'all-production-alerts',
+        nonProductionChannel: 'all-nonproduction-alerts',
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await sendServiceNotifications(incidentId, 'acknowledged');
 
       expect(result).toEqual({ success: true, errors: undefined });
-      expect(slackSpy).toHaveBeenCalledTimes(2);
+      expect(slackSpy).toHaveBeenCalledTimes(3);
       expect(slackSpy).toHaveBeenCalledWith(
         'customer-alerts',
         expect.objectContaining({ id: incidentId }),
@@ -152,8 +157,92 @@ describe('Notification System Tests', () => {
         true,
         'svc-1'
       );
+      expect(slackSpy).toHaveBeenCalledWith(
+        'all-production-alerts',
+        expect.objectContaining({ id: incidentId }),
+        'acknowledged',
+        true,
+        'svc-1'
+      );
 
       slackSpy.mockRestore();
+    });
+
+    it('should route non-production alerts to the shared non-production channel', async () => {
+      const slackSpy = vi
+        .spyOn(slack, 'sendSlackMessageToChannel')
+        .mockResolvedValue({ success: true });
+      vi.mocked(prisma.incident.findUnique).mockResolvedValue({
+        id: 'inc-nonprod-routing',
+        title: 'Development alert',
+        serviceId: 'svc-1',
+        status: 'OPEN',
+        urgency: 'MEDIUM',
+        priority: 'P3',
+        environment: 'NON_PRODUCTION',
+        accountName: null,
+        accountId: null,
+        assignee: null,
+        service: {
+          id: 'svc-1',
+          name: 'Customer A',
+          serviceNotificationChannels: ['SLACK'],
+          slackChannels: ['customer-alerts'],
+          slackChannel: 'customer-alerts',
+          slackWebhookUrl: null,
+          webhookUrl: null,
+          webhookIntegrations: [],
+        },
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+      vi.mocked(prisma.slackIntegration.findFirst).mockResolvedValue({
+        productionChannel: 'all-production-alerts',
+        nonProductionChannel: 'all-nonproduction-alerts',
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      const result = await sendServiceNotifications('inc-nonprod-routing', 'triggered');
+
+      expect(result.success).toBe(true);
+      expect(slackSpy).toHaveBeenCalledTimes(2);
+      expect(slackSpy).toHaveBeenCalledWith(
+        'all-nonproduction-alerts',
+        expect.objectContaining({ id: 'inc-nonprod-routing' }),
+        'triggered',
+        true,
+        'svc-1'
+      );
+      expect(slackSpy).not.toHaveBeenCalledWith(
+        'all-production-alerts',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything()
+      );
+
+      slackSpy.mockRestore();
+    });
+  });
+
+  describe('Environment-aware escalation', () => {
+    it('should not start escalation for non-production incidents', async () => {
+      vi.mocked(prisma.incident.findUnique).mockResolvedValue({
+        id: 'inc-nonprod',
+        environment: 'NON_PRODUCTION',
+        service: { policy: { steps: [{ id: 'step-1' }] } },
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+      vi.mocked(prisma.incident.update).mockResolvedValue({ id: 'inc-nonprod' } as any);
+
+      const result = await executeEscalation('inc-nonprod');
+
+      expect(result).toEqual({ escalated: false, reason: 'Non-production incident' });
+      expect(prisma.incident.update).toHaveBeenCalledWith({
+        where: { id: 'inc-nonprod' },
+        data: {
+          escalationStatus: null,
+          nextEscalationAt: null,
+          currentEscalationStep: null,
+          escalationProcessingAt: null,
+        },
+      });
     });
   });
 

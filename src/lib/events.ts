@@ -72,6 +72,27 @@ function truncateDedupKey(key: string): string {
 }
 
 type AccountMetadata = { accountName: string | null; accountId: string | null };
+export type IncidentEnvironment = 'PRODUCTION' | 'NON_PRODUCTION';
+
+/** Normalize receiver environment metadata. Unknown/missing values are non-production. */
+export function extractIncidentEnvironment(details: unknown): IncidentEnvironment {
+  if (!details || typeof details !== 'object' || Array.isArray(details)) {
+    return 'NON_PRODUCTION';
+  }
+
+  const record = details as Record<string, unknown>;
+  const explicit = record.is_production ?? record.isProduction;
+  if (explicit === true || String(explicit).trim().toLowerCase() === 'true') {
+    return 'PRODUCTION';
+  }
+  if (explicit === false || String(explicit).trim().toLowerCase() === 'false') {
+    return 'NON_PRODUCTION';
+  }
+
+  const tags = typeof record.tags === 'string' ? record.tags : '';
+  const environment = tags.match(/(?:^|,)\s*Environment\s*:\s*([^,]+)/i)?.[1]?.trim();
+  return environment?.toLowerCase() === 'production' ? 'PRODUCTION' : 'NON_PRODUCTION';
+}
 
 function extractIncidentPriority(details: unknown): string | null {
   if (!details || typeof details !== 'object' || Array.isArray(details)) return null;
@@ -195,6 +216,7 @@ export async function processEvent(
     if (event_action === 'trigger') {
       const accountMetadata = extractAccountMetadata(eventData.custom_details, dedup_key);
       const priority = extractIncidentPriority(eventData.custom_details);
+      const environment = extractIncidentEnvironment(eventData.custom_details);
 
       if (existingIncident) {
         // Deduplication: Just append the alert to the incident
@@ -217,6 +239,7 @@ export async function processEvent(
             ...(priority ? { priority } : {}),
             ...(accountMetadata.accountName ? { accountName: accountMetadata.accountName } : {}),
             ...(accountMetadata.accountId ? { accountId: accountMetadata.accountId } : {}),
+            environment,
           },
         });
 
@@ -254,6 +277,7 @@ export async function processEvent(
           dedupKey: dedup_key,
           accountName: accountMetadata.accountName,
           accountId: accountMetadata.accountId,
+          environment,
           serviceId,
         },
       });

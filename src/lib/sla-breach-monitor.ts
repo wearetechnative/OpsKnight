@@ -31,6 +31,7 @@ export interface BreachWarning {
   slackWebhookUrl?: string | null;
   slackChannel?: string | null;
   slackChannels?: string[];
+  environment?: string | null;
   serviceNotificationChannels?: string[];
   webhookIntegrations?: WebhookIntegration[];
 }
@@ -81,6 +82,7 @@ export async function checkSLABreaches(
       status: true,
       createdAt: true,
       acknowledgedAt: true,
+      environment: true,
       service: {
         select: {
           id: true,
@@ -160,6 +162,7 @@ export async function checkSLABreaches(
             slackWebhookUrl: incident.service.slackWebhookUrl,
             slackChannel: incident.service.slackChannel,
             slackChannels: incident.service.slackChannels,
+            environment: incident.environment,
             serviceNotificationChannels: incident.service.serviceNotificationChannels,
             webhookIntegrations: incident.service.webhookIntegrations,
           });
@@ -200,6 +203,7 @@ export async function checkSLABreaches(
           slackWebhookUrl: incident.service.slackWebhookUrl,
           slackChannel: incident.service.slackChannel,
           slackChannels: incident.service.slackChannels,
+          environment: incident.environment,
           serviceNotificationChannels: incident.service.serviceNotificationChannels,
           webhookIntegrations: incident.service.webhookIntegrations,
         });
@@ -283,7 +287,24 @@ async function notifyBreachWarning(
         )
       ).slice(0, 2);
 
-      for (const slackChannel of configuredSlackChannels) {
+      const { default: prisma } = await import('./prisma');
+      const globalSlackIntegration = await prisma.slackIntegration.findFirst({
+        where: { enabled: true, service: null },
+        select: { productionChannel: true, nonProductionChannel: true },
+        orderBy: { updatedAt: 'desc' },
+      });
+      const environmentChannel =
+        warning.environment === 'PRODUCTION'
+          ? globalSlackIntegration?.productionChannel
+          : globalSlackIntegration?.nonProductionChannel;
+      const routedSlackChannels = Array.from(
+        new Set([
+          ...configuredSlackChannels,
+          ...(environmentChannel ? [environmentChannel] : []),
+        ])
+      );
+
+      for (const slackChannel of routedSlackChannels) {
         try {
           const result = await sendSlackMessageToChannel(
             slackChannel,
@@ -375,7 +396,7 @@ async function notifyBreachWarning(
         }
       }
 
-      if (!sent && configuredSlackChannels.length === 0 && !warning.slackWebhookUrl) {
+      if (!sent && routedSlackChannels.length === 0 && !warning.slackWebhookUrl) {
         // Last resort: Global webhook (sendSlackNotification defaults to global if no url passed)
         try {
           await sendSlackNotification(

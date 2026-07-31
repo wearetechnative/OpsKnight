@@ -57,6 +57,8 @@ describe('Slack Channels API', () => {
       signingSecret: null,
       installedBy: 'user-1',
       scopes: ['chat:write'],
+      productionChannel: null,
+      nonProductionChannel: null,
       enabled: true,
       createdAt: new Date(),
       updatedAt: new Date(),

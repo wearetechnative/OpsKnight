@@ -95,6 +95,22 @@ export async function sendServiceNotifications(
             )
           ).slice(0, 2);
 
+          const globalSlackIntegration = await prisma.slackIntegration.findFirst({
+            where: { enabled: true, service: null },
+            select: { productionChannel: true, nonProductionChannel: true },
+            orderBy: { updatedAt: 'desc' },
+          });
+          const environmentChannel =
+            incident.environment === 'PRODUCTION'
+              ? globalSlackIntegration?.productionChannel
+              : globalSlackIntegration?.nonProductionChannel;
+          const routedSlackChannels = Array.from(
+            new Set([
+              ...configuredSlackChannels,
+              ...(environmentChannel ? [environmentChannel] : []),
+            ])
+          );
+
           const incidentDetails = {
             id: incident.id,
             title: incident.title,
@@ -108,7 +124,7 @@ export async function sendServiceNotifications(
           };
 
           const slackResults = await Promise.all(
-            configuredSlackChannels.map(async channel => ({
+            routedSlackChannels.map(async channel => ({
               channel,
               result: await sendSlackMessageToChannel(
                 channel,
