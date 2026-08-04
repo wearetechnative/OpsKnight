@@ -43,13 +43,14 @@ vi.mock('next/cache', () => ({
 describe('Bulk Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(assertResponderOrAbove).mockResolvedValue({} as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-    vi.mocked(getCurrentUser).mockResolvedValue({
+    const currentUser = {
       id: 'user-1',
       name: 'Test User',
       email: 'test@example.com',
       role: 'RESPONDER',
-    } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    vi.mocked(assertResponderOrAbove).mockResolvedValue(currentUser);
+    vi.mocked(getCurrentUser).mockResolvedValue(currentUser);
   });
 
   describe('bulkAcknowledge', () => {
@@ -71,6 +72,8 @@ describe('Bulk Actions', () => {
         data: {
           status: 'ACKNOWLEDGED',
           acknowledgedAt: expect.any(Date),
+          assigneeId: 'user-1',
+          teamId: null,
           escalationStatus: 'COMPLETED',
           nextEscalationAt: null,
         },
@@ -153,6 +156,8 @@ describe('Bulk Actions', () => {
         data: {
           status: 'ACKNOWLEDGED',
           acknowledgedAt: expect.any(Date),
+          assigneeId: 'user-1',
+          teamId: null,
           escalationStatus: 'COMPLETED',
           nextEscalationAt: null,
         },

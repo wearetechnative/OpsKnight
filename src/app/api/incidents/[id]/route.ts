@@ -166,6 +166,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (status === 'ACKNOWLEDGED' && !currentIncident.acknowledgedAt) {
       updates.acknowledgedAt = new Date();
     }
+    if (status === 'ACKNOWLEDGED') {
+      updates.assigneeId = apiUser.id;
+      updates.teamId = null;
+    }
     if (status === 'RESOLVED' && !currentIncident.resolvedAt) {
       updates.resolvedAt = new Date();
     }

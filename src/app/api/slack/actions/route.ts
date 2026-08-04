@@ -160,7 +160,8 @@ export async function POST(request: NextRequest) {
                         status: 'ACKNOWLEDGED',
                         acknowledgedAt: new Date(),
                         ...(acknowledgingUser && {
-                            assigneeId: acknowledgingUser.id
+                            assigneeId: acknowledgingUser.id,
+                            teamId: null
                         })
                     };
                     responseMessage = acknowledgingUser

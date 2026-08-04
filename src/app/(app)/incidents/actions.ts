@@ -17,9 +17,10 @@ function parseIncidentUrgency(value: string): IncidentUrgency {
 }
 
 export async function updateIncidentStatus(id: string, status: IncidentStatus) {
+  let actingUser: Awaited<ReturnType<typeof getCurrentUser>>;
   try {
     // Check resource-level authorization
-    await assertCanModifyIncident(id);
+    actingUser = await assertCanModifyIncident(id);
   } catch (error) {
     throw new Error(getUserFriendlyError(error));
   }
@@ -37,6 +38,12 @@ export async function updateIncidentStatus(id: string, status: IncidentStatus) {
     // Build update data
     const updateData: any = {
       status,
+      ...(status === 'ACKNOWLEDGED'
+        ? {
+            assigneeId: actingUser.id,
+            teamId: null,
+          }
+        : {}),
       // Track SLA timestamps
       ...(status === 'ACKNOWLEDGED' && !incident.acknowledgedAt
         ? {
@@ -60,7 +67,9 @@ export async function updateIncidentStatus(id: string, status: IncidentStatus) {
                   : status === 'OPEN' &&
                       (incident.status === 'SNOOZED' || incident.status === 'SUPPRESSED')
                     ? 'Incident unsnoozed/unsuppressed (escalation resumed)'
-                    : `Status updated to ${status}${status === 'ACKNOWLEDGED' || status === 'RESOLVED' ? ' (escalation stopped)' : ''}`,
+                    : status === 'ACKNOWLEDGED'
+                      ? `Incident acknowledged and assigned to ${actingUser.name}`
+                      : `Status updated to ${status}${status === 'RESOLVED' ? ' (escalation stopped)' : ''}`,
         },
       },
     };

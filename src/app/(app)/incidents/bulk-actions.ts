@@ -11,8 +11,9 @@ export async function bulkAcknowledge(incidentIds: string[]) {
     return { success: false, error: 'No incidents selected' };
   }
 
+  let user: Awaited<ReturnType<typeof getCurrentUser>>;
   try {
-    await assertResponderOrAbove();
+    user = await assertResponderOrAbove();
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unauthorized' };
   }
@@ -27,13 +28,14 @@ export async function bulkAcknowledge(incidentIds: string[]) {
       data: {
         status: 'ACKNOWLEDGED',
         acknowledgedAt: new Date(),
+        assigneeId: user.id,
+        teamId: null,
         escalationStatus: 'COMPLETED',
         nextEscalationAt: null,
       },
     });
 
     // Log events for each incident (batch create)
-    const user = await getCurrentUser();
     await prisma.incidentEvent.createMany({
       data: incidentIds.map(incidentId => ({
         incidentId,
@@ -561,8 +563,9 @@ export async function bulkUpdateStatus(
     return { success: false, error: 'No incidents selected' };
   }
 
+  let user: Awaited<ReturnType<typeof getCurrentUser>>;
   try {
-    await assertResponderOrAbove();
+    user = await assertResponderOrAbove();
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unauthorized' };
   }
@@ -623,6 +626,8 @@ export async function bulkUpdateStatus(
 
       if (status === 'ACKNOWLEDGED') {
         updateData.acknowledgedAt = new Date();
+        updateData.assigneeId = user.id;
+        updateData.teamId = null;
         updateData.escalationStatus = 'COMPLETED';
         updateData.nextEscalationAt = null;
       } else if (status === 'RESOLVED') {
@@ -643,7 +648,6 @@ export async function bulkUpdateStatus(
     }
 
     // Log events for each incident (batch create)
-    const user = await getCurrentUser();
     await prisma.incidentEvent.createMany({
       data: incidentIds.map(incidentId => ({
         incidentId,

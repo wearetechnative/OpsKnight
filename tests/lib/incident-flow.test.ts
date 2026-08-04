@@ -1,12 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import prisma from '@/lib/prisma';
 import { bulkAcknowledge, bulkUpdateStatus } from '@/app/(app)/incidents/bulk-actions';
-import { createIncident } from '@/app/(app)/incidents/actions';
+import { createIncident, updateIncidentStatus } from '@/app/(app)/incidents/actions';
 import { processJob } from '@/lib/jobs/queue';
 
 vi.mock('@/lib/rbac', () => ({
-  assertResponderOrAbove: vi.fn().mockResolvedValue(undefined),
-  assertCanModifyIncident: vi.fn().mockResolvedValue(undefined),
+  assertResponderOrAbove: vi.fn().mockResolvedValue({ id: 'user-1', name: 'Alex' }),
+  assertCanModifyIncident: vi.fn().mockResolvedValue({ id: 'user-1', name: 'Alex' }),
   getCurrentUser: vi.fn().mockResolvedValue({ id: 'user-1', name: 'Alex' }),
 }));
 
@@ -36,6 +36,7 @@ describe('incident flow safeguards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.$transaction.mockImplementation(async (cb: any) => cb(prismaMock));
+    prismaMock.incidentEvent.createMany = vi.fn().mockResolvedValue({ count: 0 });
   });
 
   it('bulk acknowledge stops escalation', async () => {
@@ -53,6 +54,30 @@ describe('incident flow safeguards', () => {
     );
   });
 
+  it('UI acknowledgement assigns the acting user', async () => {
+    prismaMock.incident.findUnique
+      .mockResolvedValueOnce({
+        status: 'OPEN',
+        acknowledgedAt: null,
+        resolvedAt: null,
+        currentEscalationStep: 0,
+      })
+      .mockResolvedValueOnce(null);
+    prismaMock.incident.update.mockResolvedValue({});
+
+    await updateIncidentStatus('inc-ui-ack', 'ACKNOWLEDGED');
+
+    expect(prismaMock.incident.update).toHaveBeenCalledWith({
+      where: { id: 'inc-ui-ack' },
+      data: expect.objectContaining({
+        status: 'ACKNOWLEDGED',
+        assigneeId: 'user-1',
+        teamId: null,
+        acknowledgedAt: expect.any(Date),
+      }),
+    });
+  });
+
   it('bulk status ACKNOWLEDGED stops escalation', async () => {
     prismaMock.incident.updateMany.mockResolvedValue({ count: 1 });
 
@@ -63,6 +88,8 @@ describe('incident flow safeguards', () => {
         data: expect.objectContaining({
           escalationStatus: 'COMPLETED',
           nextEscalationAt: null,
+          assigneeId: 'user-1',
+          teamId: null,
         }),
       })
     );
